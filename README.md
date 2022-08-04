@@ -1,2 +1,5 @@
-with hchang and minsuki2
+# 42Peer
+ㅍ
+피어 세션 -> 짝코딩 -> 코드 리뷰
+다인 동시 짝코딩기법과 함께하는 philosophers (짝코딩 적용 시범스터디)
 

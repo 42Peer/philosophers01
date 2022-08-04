@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_atoi.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jujeon <jujeon@student.42seoul.kr>         +#+  +:+       +#+        */
+/*   By: jinypark <jinypark@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/20 15:15:43 by jujeon            #+#    #+#             */
-/*   Updated: 2022/08/04 17:47:26 by jujeon           ###   ########seoul.kr  */
+/*   Updated: 2022/08/04 18:24:41 by jinypark         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ long long	ft_atolong(const	char	*str)
 		if ('0' <= *str && *str <= '9')
 		{
 			ret = ret * 10 + *str - '0';
-			if ((ret * minus > INT_MAX) || ret * minux < INT_MIN)
+			if ((ret * minus > INT_MAX) || ret * minus < INT_MIN)
 				return (-1);
 		}
 		else

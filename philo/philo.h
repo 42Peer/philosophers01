@@ -8,7 +8,6 @@
 # include <sys/time.h>
 # include <pthread.h>
 
-# define ERROR				-1
 # define INT_MAX			2147483647
 # define INT_MIN			-2147483648
 
@@ -31,6 +30,8 @@ typedef struct s_info
 
 enum e_action
 {
+	ERROR = -1,
+	SUCCESS,
 	FORK,
 	EATING,
 	SLEEPING,

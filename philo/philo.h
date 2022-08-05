@@ -32,6 +32,8 @@ typedef struct s_info
 typedef struct s_philo
 {
 	int			idx;
+	int			p_eat_cnt;
+	int			life_time;
 	t_info		*info;
 	pthread_t	tid;
 }				t_philo;

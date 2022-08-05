@@ -1,5 +1,11 @@
 #include "philo.h"
 
+void	smart_timer(int time)
+{
+	while(time--)
+		usleep(1);
+}
+
 int	set_arg(int argc, char **argv, t_info *info)
 {
 	(*info).arg.philo_n = ft_atoi(argv[1]);
@@ -29,16 +35,40 @@ void	philo_print(pthread_mutex_t *prt, int idx, char *status)
 
 	pthread_mutex_lock(prt);
 	gettimeofday(&t, NULL);
-	printf("%d %d %s", t.tv_usec / 1000, idx, status);
+	printf("%d %d %s\n", t.tv_usec / 1000, idx, status);
 	pthread_mutex_unlock(prt);
 }
 
-void philo_fork(t_philo *philo)
+void	philo_fork(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo->info->prt_mutex, philo->idx, "has taken a fork");
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo->info->prt_mutex, philo->idx, "has taken a fork");
+}
+
+void	philo_eat(t_philo *philo)
+{
+	philo_print(philo->info->prt_mutex, philo->idx, "is eating");
+	philo->life_time = philo->info->arg.life_t;
+	smart_timer(philo->info->arg.eat_t);
+	(*philo).p_eat_cnt++;
+	if (philo->p_eat_cnt == philo->info->arg.eat_cnt)
+		philo->info->eat_flag++;
+}
+
+void	philo_sleep(t_philo *philo)
+{
+	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
+	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
+	philo_print(philo->info->prt_mutex, philo->idx, "is sleeping");
+	smart_timer(philo->info->arg.sleep_t);
+}
+
+void	philo_think(t_philo *philo)
+{
+	philo_print(philo->info->prt_mutex, philo->idx, "is thinking");
+	usleep(1);
 }
 
 int	init_info(t_info *info)
@@ -85,8 +115,10 @@ t_philo	*init_philo(t_info *info)
 	philo = malloc((*info).arg.philo_n * sizeof(t_philo));
 	while (i < n)
 	{
+		philo[i].life_time = info->arg.life_t;
 		philo[i].idx = i;
 		philo[i].info = info;
+		philo[i].eat_cnt = 0;
 		++i;
 	}
 	i = 0;

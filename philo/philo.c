@@ -1,9 +1,20 @@
 #include "philo.h"
 
-void	smart_timer(int time)
+size_t	get_time(void)
 {
-	while(time--)
-		usleep(1);
+	struct timeval	time;
+
+	(gettimeofday(&time, NULL));
+	return(time.tv_sec * 1000 + time.tv_usec / 1000);
+}
+
+void	smart_timer(size_t time)
+{	
+	size_t	start;
+
+	start = get_time();
+	while (get_time() - start < time)
+		usleep(557);
 }
 
 int	set_arg(int argc, char **argv, t_info *info)
@@ -29,31 +40,31 @@ int	set_arg(int argc, char **argv, t_info *info)
 	return (SUCCESS);
 }
 
-void	philo_print(pthread_mutex_t *prt, int idx, char *status)
+void	philo_print(t_info *info, int idx, char *status)
 {
 	struct timeval	t;
 
-	pthread_mutex_lock(prt);
-	gettimeofday(&t, NULL);
-	printf("%d %d %s\n", t.tv_usec / 1000, idx, status);
-	pthread_mutex_unlock(prt);
+	pthread_mutex_lock(&info->prt_mutex);
+	// gettimeofday(&t, NULL);
+	printf("%ld %d %s\n", get_time() - info->start_time, idx, status);
+	pthread_mutex_unlock(&info->prt_mutex);
 }
 
 void	philo_fork(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
-	philo_print(philo->info->prt_mutex, philo->idx, "has taken a fork");
+	philo_print(philo->info, philo->idx, "has taken a fork");
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
-	philo_print(philo->info->prt_mutex, philo->idx, "has taken a fork");
+	philo_print(philo->info, philo->idx, "has taken a fork");
 }
 
 void	philo_eat(t_philo *philo)
 {
 	struct timeval t;
 
-	philo_print(philo->info->prt_mutex, philo->idx, "is eating");
-	if (philo->info->die_flag == 1)
-		philo->life_time = gettimeofday(&t, NULL);
+	philo_print(philo->info, philo->idx, "is eating");
+	//if (philo->info->die_flag == 1)
+//		philo->life_time = gettimeofday(&t, NULL);
 	philo->life_time = philo->info->arg.life_t;
 	smart_timer(philo->info->arg.eat_t);
 	(*philo).p_eat_cnt++;
@@ -65,13 +76,13 @@ void	philo_sleep(t_philo *philo)
 {
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
-	philo_print(philo->info->prt_mutex, philo->idx, "is sleeping");
+	philo_print(philo->info, philo->idx, "is sleeping");
 	smart_timer(philo->info->arg.sleep_t);
 }
 
 void	philo_think(t_philo *philo)
 {
-	philo_print(philo->info->prt_mutex, philo->idx, "is thinking");
+	philo_print(philo->info, philo->idx, "is thinking");
 	usleep(1);
 }
 
@@ -89,7 +100,8 @@ int	init_info(t_info *info)
 			return (ERROR);
 		++i;
 	}
-	pthread_mutex_init((*info).prt_mutex, NULL);
+	pthread_mutex_init(&(*info).prt_mutex, NULL);
+	info->start_time = get_time();
 	return (SUCCESS);
 }
 
@@ -99,13 +111,14 @@ void	*philo_action(void *param)
 	struct timeval t;
 
 	philo = (t_philo *)param;
+//	philo->life_time = get_time();
 	while (1)
 	{
-		if (philo->info->die_flag == 0)
-		{
-			philo->life_time = gettimeofday(&t, NULL);
-			philo->info->die_flag = 1;
-		}
+		// if (philo->info->die_flag == 0)
+		// {
+		// 	philo->life_time = gettimeofday(&t, NULL);
+		// 	philo->info->die_flag = 1;
+		// }
 		philo_fork(philo);
 		philo_eat(philo);
 		philo_sleep(philo);
@@ -144,7 +157,7 @@ int	main(int argc, char *argv[])
 {
 	t_info	info;
 	t_philo	*philo;
-
+	
 	if (!(argc == 5 || argc == 6))
 		return (ERROR);
 	info.eat_flag = 0;
@@ -154,6 +167,7 @@ int	main(int argc, char *argv[])
 	philo = init_philo(&info);
 	while(1)
 	{
+
 		if (info.eat_flag == info.arg.philo_n)
 		{
 			printf("HEY THIS IS THE END\n");

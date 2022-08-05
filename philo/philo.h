@@ -27,15 +27,6 @@ typedef struct s_info
 	pthread_mutex_t *prt_mutex;
 }					t_info;
 
-// while (i < philo_n)
-// {
-// 	if (philo[i]->eat_cnt = 7)
-// 		eat_flag++;
-// 	if eat_flag == philo_n
-// 	끝
-// 	i++;
-// }
-
 typedef struct s_philo
 {
 	int			idx;

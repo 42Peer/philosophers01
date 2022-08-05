@@ -76,7 +76,6 @@ t_philo	*init_philo(t_info info)
 	}
 }
 
-
 int	main(int argc, char *argv[])
 {
 	t_info	info;

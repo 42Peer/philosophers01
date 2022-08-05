@@ -49,7 +49,11 @@ void	philo_fork(t_philo *philo)
 
 void	philo_eat(t_philo *philo)
 {
+	struct timeval t;
+
 	philo_print(philo->info->prt_mutex, philo->idx, "is eating");
+	if (philo->info->die_flag == 1)
+		philo->life_time = gettimeofday(&t, NULL);
 	philo->life_time = philo->info->arg.life_t;
 	smart_timer(philo->info->arg.eat_t);
 	(*philo).p_eat_cnt++;
@@ -59,7 +63,6 @@ void	philo_eat(t_philo *philo)
 
 void	philo_sleep(t_philo *philo)
 {
-	printf("into sleeping\n");
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo->info->prt_mutex, philo->idx, "is sleeping");
@@ -93,10 +96,16 @@ int	init_info(t_info *info)
 void	*philo_action(void *param)
 {
 	t_philo *philo;
+	struct timeval t;
 
 	philo = (t_philo *)param;
 	while (1)
 	{
+		if (philo->info->die_flag == 0)
+		{
+			philo->life_time = gettimeofday(&t, NULL);
+			philo->info->die_flag = 1;
+		}
 		philo_fork(philo);
 		philo_eat(philo);
 		philo_sleep(philo);
@@ -138,12 +147,18 @@ int	main(int argc, char *argv[])
 
 	if (!(argc == 5 || argc == 6))
 		return (ERROR);
+	info.eat_flag = 0;
+	info.die_flag = 0;
 	set_arg(argc, argv, &info);
 	init_info(&info);
 	philo = init_philo(&info);
 	while(1)
 	{
-		//죽거나 굶거나
+		if (info.eat_flag == info.arg.philo_n)
+		{
+			printf("HEY THIS IS THE END\n");
+			exit(1);
+		}
 	}
 	return (0);
 }

@@ -49,4 +49,6 @@ enum	e_action
 	DIED
 };
 
+long long	ft_atoi(const	char	*str);
+
 #endif

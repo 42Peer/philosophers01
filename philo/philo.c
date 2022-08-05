@@ -8,7 +8,7 @@ void	smart_timer(int time)
 
 int	set_arg(int argc, char **argv, t_info *info)
 {
-	(*info).arg.philo_n = ft_atoi(argv[1]);
+	(*info).arg.philo_n =ft_atoi(argv[1]);
 	if ((*info).arg.philo_n < 0)
 		return (ERROR);
 	(*info).arg.life_t = ft_atoi(argv[2]);
@@ -59,8 +59,9 @@ void	philo_eat(t_philo *philo)
 
 void	philo_sleep(t_philo *philo)
 {
-	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
+	printf("into sleeping\n");
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
+	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo->info->prt_mutex, philo->idx, "is sleeping");
 	smart_timer(philo->info->arg.sleep_t);
 }
@@ -118,15 +119,16 @@ t_philo	*init_philo(t_info *info)
 		philo[i].life_time = info->arg.life_t;
 		philo[i].idx = i;
 		philo[i].info = info;
-		philo[i].eat_cnt = 0;
+		philo[i].p_eat_cnt = 0;
 		++i;
 	}
 	i = 0;
 	while (i < n)
 	{
-		pthread_create(philo[i].tid, NULL, &philo_action, &philo[i]);
+		pthread_create(&philo[i].tid, NULL, &philo_action, &philo[i]);
 		++i;
 	}
+	return (philo);
 }
 
 int	main(int argc, char *argv[])
@@ -135,10 +137,14 @@ int	main(int argc, char *argv[])
 	t_philo	*philo;
 
 	if (!(argc == 5 || argc == 6))
-		return (ft_error(&info));
+		return (ERROR);
 	set_arg(argc, argv, &info);
 	init_info(&info);
-	init_philo(&info);
+	philo = init_philo(&info);
+	while(1)
+	{
+		//죽거나 굶거나
+	}
 	return (0);
 }
 

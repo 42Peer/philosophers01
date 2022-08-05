@@ -11,7 +11,7 @@ OBJS = $(SRCS:.c=.o)
 $(NAME): $(OBJS)
 	$(CC) -lpthread $(OBJS) -o $(NAME)
 
-%.o: %.c
+%.o : %.c
 	$(CC) -c $< -o $@
 
 all : $(NAME)
@@ -22,6 +22,11 @@ clean:
 fclean: clean
 	$(RM) $(NAME)
 
+debug: all
+	$(CC) -lpthread $(OBJS) -o $(NAME) -fsanitize=address
+
+lldb: all
+	$(CC) -lpthread $(SRCS) -o $(NAME) -g
 
 re:
 	make fclean

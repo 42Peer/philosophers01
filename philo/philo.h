@@ -20,13 +20,19 @@ typedef	struct s_arg
 	int		eat_cnt;
 }		t_arg;
 
+typedef struct s_flag
+{
+	int				eat_f;
+	int				die_f;
+	int				err_f;
+}					t_flag;
+
 typedef struct s_info
 {
 	t_arg			arg;
 	pthread_mutex_t	*fork_mutex;
 	pthread_mutex_t prt_mutex;
-	int				eat_flag;
-	int				die_flag;
+	t_flag			flags;
 	size_t			start_time;
 }					t_info;
 

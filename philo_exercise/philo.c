@@ -6,7 +6,7 @@
 /*   By: jinypark <jinypark@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/05 13:08:11 by jinypark          #+#    #+#             */
-/*   Updated: 2022/08/05 17:21:14 by jinypark         ###   ########.fr       */
+/*   Updated: 2022/08/05 17:44:37 by jinypark         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ void	philo_eat(t_philo *philo)
 
 void	philo_sleep(t_philo *philo)
 {
-	int idx;
+	int 	idx;
 	struct	timeval t;
 
 	idx = philo->idx;
@@ -121,7 +121,7 @@ void	philo_sleep(t_philo *philo)
 
 void	philo_think(t_philo *philo)
 {
-	int	idx;
+	int		idx;
 	struct	timeval t;
 
 	idx = philo->idx;

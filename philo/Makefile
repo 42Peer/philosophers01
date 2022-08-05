@@ -2,18 +2,17 @@ CC = cc
 
 NAME = philo
 
-CFLAGS = -Wall -Werror -Wextra -lpthread
+CFLAGS = -Wall -Werror -Wextra
 
-SRCS = *.c \
-		phlio.c
-	  
+SRCS = philo.c ft_atoi.c
+
 OBJS = $(SRCS:.c=.o)
 
 $(NAME): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
+	$(CC) -lpthread $(OBJS) -o $(NAME)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $^ -o $@
+	$(CC) -c $< -o $@
 
 all : $(NAME)
 

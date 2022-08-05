@@ -20,10 +20,20 @@ typedef struct s_arg
 	int	eat_cnt;
 }	t_arg;
 
+typedef struct s_philo
+{
+	int				idx;
+	pthread_mutex_t	*mutex;
+	pthread_mutex_t	*p_mutex;
+	pthread_t		tid;
+	t_arg			arg;
+	int				life_time;
+}	t_philo;
+
 typedef struct s_info
 {
 	t_arg			arg;
-	pthread_t		*thread;
+	t_philo			*philo;
 	pthread_mutex_t	*mutex;
 	int				flag;
 }	t_info;
@@ -39,4 +49,6 @@ enum e_action
 	DIED
 };
 
+long long	ft_atoi(const char *str);
+int			ft_isdigit(int c);
 #endif

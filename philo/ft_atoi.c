@@ -6,40 +6,40 @@
 /*   By: jinypark <jinypark@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/20 15:15:43 by jujeon            #+#    #+#             */
-/*   Updated: 2022/08/04 18:24:41 by jinypark         ###   ########.fr       */
+/*   Updated: 2022/08/05 10:51:49 by jinypark         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	check_outofint(long long num)
-{
-	if (num < -2147483648 || num > 2147483647)
-		get_error(OUTOFINT);
-}
+// void	check_outofint(long long num)
+// {
+// 	if (num < -2147483648 || num > 2147483647)
+// 		get_error(1);
+// }
 
-void	check_noint(char *str)
-{
-	char	*temp;
+// void	check_noint(char *str)
+// {
+// 	char	*temp;
 
-	while (*str == 32 || (*str >= 9 && *str <= 13))
-		str++;
-	if (*str == '-' || *str == '+')
-		str++;
-	// temp = (char *)str;
-	// while (temp[0] == '0' && temp[0] != '\0')
-	// 	temp++;
-	// if (ft_strlen(temp) > 10)
-	// 	get_error(WRONGARG);
-	while (*str)
-	{
-		if (*str < '0' || *str > '9')
-			return (-1);
-		str++;
-	}
-}
+// 	while (*str == 32 || (*str >= 9 && *str <= 13))
+// 		str++;
+// 	if (*str == '-' || *str == '+')
+// 		str++;
+// 	// temp = (char *)str;
+// 	// while (temp[0] == '0' && temp[0] != '\0')
+// 	// 	temp++;
+// 	// if (ft_strlen(temp) > 10)
+// 	// 	get_error(WRONGARG);
+// 	while (*str)
+// 	{
+// 		if (*str < '0' || *str > '9')
+// 			return (-1);
+// 		str++;
+// 	}
+// }
 
-long long	ft_atolong(const	char	*str)
+long long	ft_atoi(const	char	*str)
 {
 	long long	minus;
 	long long	ret;

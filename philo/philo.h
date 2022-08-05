@@ -39,4 +39,8 @@ enum e_action
 	DIED
 };
 
+/*
+*				UTIL FUNC
+*/
+
 #endif

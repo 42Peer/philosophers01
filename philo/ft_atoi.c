@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ft_atoi.c                                          :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jinypark <jinypark@student.42seoul.kr>     +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/11/20 15:15:43 by jujeon            #+#    #+#             */
-/*   Updated: 2022/08/05 10:51:49 by jinypark         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "philo.h"
 
 // void	check_outofint(long long num)
@@ -55,17 +43,17 @@ long long	ft_atoi(const	char	*str)
 		str++;
 	}
 	if (*str == '-' || *str == '+')
-		return (-1);
+		return (ERROR);
 	while (*str)
 	{
 		if ('0' <= *str && *str <= '9')
 		{
 			ret = ret * 10 + *str - '0';
 			if ((ret * minus > INT_MAX) || ret * minus < INT_MIN)
-				return (-1);
+				return (ERROR);
 		}
 		else
-			break ;
+			return (ERROR);
 		str++;
 	}
 	return (ret * minus);

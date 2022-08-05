@@ -25,12 +25,14 @@ typedef struct s_info
 	t_arg			arg;
 	pthread_mutex_t	*fork_mutex;
 	pthread_mutex_t *prt_mutex;
+	int				eat_flag;
+	int				die_flag;
 }					t_info;
 
 typedef struct s_philo
 {
 	int			idx;
-	t_info		info;
+	t_info		*info;
 	pthread_t	tid;
 }				t_philo;
 

@@ -23,6 +23,24 @@ int	set_arg(int argc, char **argv, t_info *info)
 	return (SUCCESS);
 }
 
+void	philo_print(pthread_mutex_t *prt, int idx, char *status)
+{
+	struct timeval	t;
+
+	pthread_mutex_lock(prt);
+	gettimeofday(&t, NULL);
+	printf("%d %d %s", t.tv_usec / 1000, idx, status);
+	pthread_mutex_unlock(prt);
+}
+
+void philo_fork(t_philo *philo)
+{
+	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
+	philo_print(philo->info->prt_mutex, philo->idx, "has taken a fork");
+	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
+	philo_print(philo->info->prt_mutex, philo->idx, "has taken a fork");
+}
+
 int	init_info(t_info *info)
 {
 	int	i;
@@ -46,22 +64,25 @@ void	*philo_action(void *param)
 	t_philo *philo;
 
 	philo = (t_philo *)param;
-	philo_fork(philo);
-	philo_eat(philo);
-	philo_sleep(philo);
-	philo_think(philo);
+	while (1)
+	{
+		philo_fork(philo);
+		philo_eat(philo);
+		philo_sleep(philo);
+		philo_think(philo);
+	}
 	return (NULL);
 }
 
-t_philo	*init_philo(t_info info)
+t_philo	*init_philo(t_info *info)
 {
 	int		n;
 	int		i;
 	t_philo	*philo;
 
-	n = info.arg.philo_n;
+	n = (*info).arg.philo_n;
 	i = 0;
-	philo = malloc(info.arg.philo_n * sizeof(t_philo));
+	philo = malloc((*info).arg.philo_n * sizeof(t_philo));
 	while (i < n)
 	{
 		philo[i].idx = i;
@@ -85,7 +106,7 @@ int	main(int argc, char *argv[])
 		return (ft_error(&info));
 	set_arg(argc, argv, &info);
 	init_info(&info);
-	init_philo(info);
+	init_philo(&info);
 	return (0);
 }
 

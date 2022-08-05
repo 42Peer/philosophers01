@@ -1,5 +1,8 @@
 {
 	"files.associations": {
-		"pthread.h": "c"
+		"pthread.h": "c",
+		"__threading_support": "c",
+		"thread": "c",
+		"philo.h": "c"
 	}
 }

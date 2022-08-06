@@ -211,8 +211,15 @@ int	main(int argc, char *argv[])
 		if (info.flags.eat_f == info.arg.philo_n)
 		{
 			// philo_print(&info, 0, "HEY THIS IS THE END\n");
-			pthread_mutex_lock(&info.prt_mutex);
-			exit(0);  // <------------------------------ 해제해야함. 안그러면 쓰레기 들어감
+			//pthread_mutex_lock(&info.prt_mutex);
+
+			pthread_detach(philo[0].tid);
+			pthread_detach(philo[1].tid);
+			pthread_detach(philo[2].tid);
+			pthread_detach(philo[3].tid);
+
+			return (0);
+			//exit(0);  // <------------------------------ 해제해야함. 안그러면 쓰레기 들어감
 		}
 		// if (info.flags.err_f > 0)
 		// 	exit(1);

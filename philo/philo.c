@@ -9,18 +9,18 @@ size_t	get_time(void)
 }
 
 void	smart_timer(t_philo *philo, size_t time)
-{	
+{
 	size_t	start;
 	size_t	diff;
 
 	start = get_time();
 	while (get_time() - start < time)
 	{
-		if (get_time() - philo->life_time > philo->info->arg.life_t)
-		{
-			philo->info->flags.die_f = 1;
-			return ;
-		}
+		// if (get_time() - philo->life_time > philo->info->arg.life_t)
+		// {
+		// 	philo->info->flags.die_f = 1;
+		// 	return ;
+		// }
 		usleep(500);
 	}
 }
@@ -56,11 +56,11 @@ void	philo_print(t_info *info, int idx, char *status)
 	// gettimeofday(&t, NULL);
 	printf("%ld %d %s\n", get_time() - info->start_time, idx, status);
 	if (info->flags.err_f > 0
-		|| info->flags.die_f > 0)
+	|| info->flags.die_f > 0)
 		return ;
 	pthread_mutex_unlock(&info->prt_mutex);
 		//|| info->flags.eat_f >= info->arg.philo_n)
-	
+
 }
 
 void	philo_fork(t_philo *philo)
@@ -127,7 +127,7 @@ void	*philo_action(void *param)
 	struct timeval t;
 
 	philo = (t_philo *)param;
-	philo->life_time = get_time();
+	philo->life_time = philo->info->arg.life_t;
 	while (1)
 	{
 		// if (philo->info->flags.die_f == 0)
@@ -154,7 +154,7 @@ t_philo	*init_philo(t_info *info)
 	philo = malloc((*info).arg.philo_n * sizeof(t_philo));
 	while (i < n)
 	{
-		philo[i].life_time = info->arg.life_t;
+		//philo[i].life_time = info->arg.life_t;
 		philo[i].idx = i;
 		philo[i].info = info;
 		philo[i].p_eat_cnt = 0;
@@ -173,7 +173,7 @@ int	main(int argc, char *argv[])
 {
 	t_info	info;
 	t_philo	*philo;
-	
+
 	if (!(argc == 5 || argc == 6))
 		return (ERROR);
 
@@ -181,19 +181,38 @@ int	main(int argc, char *argv[])
 	init_info(&info);
 	philo = init_philo(&info);
 	while(1)
-	{	
-		// if (info.flags.eat_f == info.arg.philo_n)
-		// {
-		// 	philo_print(&info, 0, "HEY THIS IS THE END\n");
-		// 	exit(1);
-		// }
-		if (info.flags.die_f > 0)
+	{
+		int j = 4;
+		smart_timer(NULL, 1);
+		while (j--)
 		{
-			philo_print(&info, info.flags.die_f + 1, "IS DIED");
+			--philo[j].life_time;
+			if (philo[j].life_time == 0)
+			{
+				philo_print(&info, j, "died");
+				exit(1);
+			}
+			// printf("life %d: %zu\n", j, philo[j].life_time);
+
+			// if (j == 0 || j ==2)
+			// {
+			// 	printf("life 0: %zu\n", philo[0].life_time);
+			// 	printf("life 2: %zu\n", philo[2].life_time);
+			// }
+			// ++j;
+		}
+		if (info.flags.eat_f == info.arg.philo_n)
+		{
+			philo_print(&info, 0, "HEY THIS IS THE END\n");
 			exit(1);
 		}
-		if (info.flags.err_f > 0)
-			exit(1);
+		//if (info.flags.die_f > 0)
+		//{
+		//	philo_print(&info, info.flags.die_f + 1, "IS DIED");
+		//	exit(1);
+		//}
+		// if (info.flags.err_f > 0)
+		// 	exit(1);
 	}
 	return (0);
 }

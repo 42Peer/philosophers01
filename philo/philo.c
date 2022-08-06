@@ -169,8 +169,14 @@ t_philo	*init_philo(t_info *info)
 	return (philo);
 }
 
+void debug()
+{
+	system("leaks philo");
+
+}
 int	main(int argc, char *argv[])
 {
+	//atexit(debug);
 	t_info	info;
 	t_philo	*philo;
 
@@ -190,7 +196,12 @@ int	main(int argc, char *argv[])
 			if (philo[j].life_time == 0)
 			{
 				philo_print(&info, j, "died");
-				exit(1);
+				j = 4;
+				while(j--)
+					pthread_mutex_destroy(&info.fork_mutex[j]);
+				//exit(1);
+				
+				return (0);
 			}
 			// printf("life %d: %zu\n", j, philo[j].life_time);
 
@@ -201,11 +212,19 @@ int	main(int argc, char *argv[])
 			// }
 			// ++j;
 		}
+		
+
+
 		if (info.flags.eat_f == info.arg.philo_n)
 		{
-			philo_print(&info, 0, "HEY THIS IS THE END\n");
-			exit(1);
+			//philo_print(&info, 0, "HEY THIS IS THE END\n");
+			j = 4;
+			pthread_mutex_lock(&info.prt_mutex);
+			while(j--)
+				pthread_mutex_destroy(&info.fork_mutex[j]);
+			return (0);
 		}
+		
 		//if (info.flags.die_f > 0)
 		//{
 		//	philo_print(&info, info.flags.die_f + 1, "IS DIED");

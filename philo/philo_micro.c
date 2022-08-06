@@ -5,7 +5,7 @@ size_t	get_time(void)
 	struct timeval	time;
 
 	gettimeofday(&time, NULL);
-	return(time.tv_sec * 1000 + time.tv_usec / 1000);
+	return(time.tv_sec * 1000000 + time.tv_usec);
 }
 
 void	smart_timer(t_philo *philo, size_t time)
@@ -30,7 +30,7 @@ int	set_arg(int argc, char **argv, t_info *info)
 	(*info).arg.philo_n =ft_atoi(argv[1]);
 	if ((*info).arg.philo_n < 0)
 		return (ERROR);
-	(*info).arg.life_t = ft_atoi(argv[2]);
+	(*info).arg.life_t = ft_atoi(argv[2]) * 1000;
 	if ((*info).arg.life_t < 0)
 		return (ERROR);
 	(*info).arg.eat_t = ft_atoi(argv[3]);
@@ -61,14 +61,16 @@ void	philo_print(t_info *info, int idx, char *status)
 	if (strstr(status, "died")) // ---------------> need to change to ft_stsstr
 		return ;
 	pthread_mutex_unlock(&info->prt_mutex);
+		//|| info->flags.eat_f >= info->arg.philo_n)
+
 }
 
 void	philo_fork(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
-	philo_print(philo->info, philo->idx, "has taken a 1 fork");
+	philo_print(philo->info, philo->idx, "has taken a fork");
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
-	philo_print(philo->info, philo->idx, "has taken a 2 fork");
+	philo_print(philo->info, philo->idx, "has taken a fork");
 }
 
 void	philo_eat(t_philo *philo)
@@ -79,7 +81,7 @@ void	philo_eat(t_philo *philo)
 //	if (philo->info->flags.die_f == 1)
 //		philo->life_time = gettimeofday(&t, NULL);
 	philo->life_time = get_time();
-	smart_timer(philo, philo->info->arg.eat_t);
+	smart_timer(philo, philo->info->arg.eat_t * 1000);
 	(*philo).p_eat_cnt++;
 	if (philo->p_eat_cnt == philo->info->arg.eat_cnt)
 		philo->info->flags.eat_f++;
@@ -90,7 +92,7 @@ void	philo_sleep(t_philo *philo)
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo->info, philo->idx, "is sleeping");
-	smart_timer(philo, philo->info->arg.sleep_t);
+	smart_timer(philo, philo->info->arg.sleep_t * 1000);
 }
 
 void	philo_think(t_philo *philo)
@@ -164,8 +166,11 @@ t_philo	*init_philo(t_info *info)
 	while (i < n)
 	{
 		pthread_create(&philo[i].tid, NULL, &philo_action, &philo[i]);
+		// 주석 : 순서에 따라 죽는거 영향을 끼침 
 		++i;
 	}
+	// pthread_create(&philo[i].tid, NULL, &philo_action, &philo[i]);
+	
 	return (philo);
 }
 
@@ -189,7 +194,6 @@ int	main(int argc, char *argv[])
 	while(1)
 	{
 		int j = 4; // 주석 : 테스트를 위해 4부터 시작 
-		// smart_timer(NULL, 1);
 		while (j--)
 		{
 			//printf("life %d: %zu\n", j, get_time() - philo[j].life_time);
@@ -197,6 +201,9 @@ int	main(int argc, char *argv[])
 			{
 				// info.flags.die_f = 1;
 				philo_print(&info, j, "died");
+				//j = 4;
+				//while(j--)
+					// pthread_mutex_destroy(&info.fork_mutex[j]);
 				exit(1);
 			}
 			// --philo[j].life_time;
@@ -207,13 +214,30 @@ int	main(int argc, char *argv[])
 			// 	//while(j--)
 			// 		// pthread_mutex_destroy(&info.fork_mutex[j]);
 			// 	exit(1);
+				
+			// 	return (0);
+			// }
+			// if (j == 0 || j ==2)
+			// {
+			// 	printf("life 0: %zu\n", philo[0].life_time);
+			// 	printf("life 2: %zu\n", philo[2].life_time);
+			// }
+			// ++j;
 		}
-		if (info.flags.eat_f == info.arg.philo_n)
-		{
-			// philo_print(&info, 0, "HEY THIS IS THE END\n");
-			pthread_mutex_lock(&info.prt_mutex);
-			exit(0);  // <------------------------------ 해제해야함. 안그러면 쓰레기 들어감
-		}
+		// if (info.flags.eat_f == info.arg.philo_n)
+		// {
+		// 	//philo_print(&info, 0, "HEY THIS IS THE END\n");
+		// 	j = 4;
+		// 	//pthread_mutex_lock(&info.prt_mutex);
+		// 	//while(j--)
+		// 	//	pthread_mutex_destroy(&info.fork_mutex[j]);
+		// 	return (0);
+		// }
+		//if (info.flags.die_f > 0)
+		//{
+		//	philo_print(&info, info.flags.die_f + 1, "IS DIED");
+		//	exit(1);
+		//}
 		// if (info.flags.err_f > 0)
 		// 	exit(1);
 	}
@@ -224,3 +248,15 @@ int	main(int argc, char *argv[])
 //다 죽은 다음에 해야함
 //근데 다시 확인은 해봐야함
  // 주전부리 : 젤리 초코렛 과자?
+//0 0 has taken a fork
+//0 0 has taken a fork
+//0 0 is eating
+//0 1 has taken a fork
+//200 0 is sleeping
+//200 1 has taken a fork
+//200 1 is eating
+//200 3 has taken a fork
+//200 3 has taken a fork
+//200 3 is eating
+//300 0 is thinking
+//312 2 died

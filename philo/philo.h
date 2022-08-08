@@ -32,6 +32,7 @@ typedef struct s_info
 	t_arg			arg;
 	pthread_mutex_t	*fork_mutex;
 	pthread_mutex_t prt_mutex;
+	pthread_mutex_t	t_mutex;
 	t_flag			flags;
 	size_t			start_time;
 }					t_info;

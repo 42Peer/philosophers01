@@ -1,6 +1,6 @@
 #include "philo.h"
 
-size_t	get_time(void)
+size_t	get_time()
 {
 	struct timeval	time;
 
@@ -8,21 +8,13 @@ size_t	get_time(void)
 	return(time.tv_sec * 1000 + time.tv_usec / 1000);
 }
 
-void	smart_timer(t_philo *philo, size_t time)
+void	smart_timer(size_t time)
 {
 	size_t	start;
-	size_t	diff;
 
 	start = get_time();
 	while (get_time() - start < time)
-	{
-		// if (get_time() - philo->life_time > philo->info->arg.life_t)
-		// {
-		// 	philo->info->flags.die_f = 1;
-		// 	return ;
-		// }
 		usleep(200);
-	}
 }
 
 int	set_arg(int argc, char **argv, t_info *info)
@@ -57,10 +49,9 @@ void	philo_print_die(t_info *info, int idx, char *status)
 
 void	philo_print(t_philo *philo, int idx, int status)
 {
-	struct timeval	t;
 
 	pthread_mutex_lock(&philo->info->prt_mutex);
-	if (!philo->info->flags.die_f)
+	if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
 	{
 		if (status == FORK)
 			printf("%ld %d has taken a fork\n", get_time() - philo->info->start_time, idx + 1);
@@ -88,14 +79,14 @@ void	philo_fork(t_philo *philo)
 
 void	philo_eat(t_philo *philo)
 {
-	struct timeval t;
 
 	philo_print(philo, philo->idx, EATING);
-	// (*philo).p_eat_cnt++;
-	if (philo->info->flags.eat_f == philo->info->arg.philo_n)
-		exit(1);
+	// if (philo->info->flags.eat_f == philo->info->arg.philo_n)
+	// 	exit(1);
+	pthread_mutex_lock(&philo->info->t_mutex);
 	philo->life_time = get_time();
-	smart_timer(philo, philo->info->arg.eat_t);
+	pthread_mutex_unlock(&philo->info->t_mutex);
+	smart_timer(philo->info->arg.eat_t);
 }
 
 void	philo_sleep(t_philo *philo)
@@ -103,13 +94,13 @@ void	philo_sleep(t_philo *philo)
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo, philo->idx, SLEEPING);
-	smart_timer(philo, philo->info->arg.sleep_t);
+	smart_timer(philo->info->arg.sleep_t);
 }
 
 void	philo_think(t_philo *philo)
 {
 	philo_print(philo, philo->idx, THINKING);
-	usleep(50);
+	usleep(1);
 }
 
 int	init_info(t_info *info)
@@ -127,6 +118,7 @@ int	init_info(t_info *info)
 		++i;
 	}
 	pthread_mutex_init(&(*info).prt_mutex, NULL);
+	pthread_mutex_init(&(*info).t_mutex, NULL);
 	info->start_time = get_time();
 	info->flags.eat_f = 0;
 	info->flags.die_f = 0;
@@ -137,10 +129,18 @@ int	init_info(t_info *info)
 void	*philo_action(void *param)
 {
 	t_philo *philo;
-	struct timeval t;
-
 	philo = (t_philo *)param;
+	pthread_mutex_lock(&philo->info->t_mutex);
 	philo->life_time = get_time();
+	pthread_mutex_unlock(&philo->info->t_mutex);
+	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
+		smart_timer(philo->info->arg.eat_t / 2);
+	if (philo->info->arg.philo_n == 1)
+	{
+		philo_print(philo, philo->idx, FORK);
+		while (!philo->info->flags.die_f);
+		return (NULL);
+	}
 	while (!philo->info->flags.die_f)
 	{
 		philo_fork(philo);
@@ -163,8 +163,8 @@ t_philo	*init_philo(t_info *info)
 	while (i < n)
 	{
 		philo[i].life_time = get_time();
-		philo[i].idx = i;
 		philo[i].info = info;
+		philo[i].idx = i;
 		philo[i].p_eat_cnt = 0;
 		++i;
 	}
@@ -194,34 +194,34 @@ int	main(int argc, char *argv[])
 		i = 0;
 		while (i < info.arg.philo_n)
 		{
+			pthread_mutex_lock(&philo->info->t_mutex);
 			if (get_time() - philo[i].life_time >= info.arg.life_t)
 			{
 				info.flags.die_f = 1;
 				philo_print_die(&info, i, "died");
 				i = 0;
-				while (i < info.arg.philo_n)
-				{
-					pthread_join(philo[i].tid, NULL);
-					++i;
-				}
+				printf("die_f end here\n");
+				pthread_mutex_unlock(&philo->info->t_mutex);
 				break;
 			}
+			pthread_mutex_unlock(&philo->info->t_mutex);
 			if (info.flags.eat_f >= info.arg.philo_n)
 			{
-				exit(1);
 				i = 0;
 				info.flags.die_f = 1;
-				while (i < info.arg.philo_n)
-				{
-					pthread_join(philo[i].tid, NULL);
-					++i;
-				}
+				printf("eat_f end here\n");
 				break ;
 			}
 			++i;
 		}
 		if (info.flags.die_f)
 			break ;
+	}
+	i = 0;
+	while (info.arg.philo_n >= 2 && i < info.arg.philo_n)
+	{
+		pthread_join(philo[i].tid, NULL);
+		++i;
 	}
 	free(philo);
 	free(info.fork_mutex);

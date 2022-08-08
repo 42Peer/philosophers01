@@ -2,17 +2,18 @@ CC = cc
 
 NAME = philo
 
-CFLAGS = -Wall -Werror -Wextra
+#CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -Wall -Werror -Wextra -fsanitize=thread
 
 SRCS = philo.c ft_atoi.c
 
 OBJS = $(SRCS:.c=.o)
 
 $(NAME): $(OBJS)
-	$(CC) -lpthread $(OBJS) -o $(NAME)
+	$(CC) $(CFLAGS) -lpthread $(OBJS) -o $(NAME)
 
 %.o : %.c
-	$(CC) -c $< -o $@
+	$(CC) $(CFLAGS) -g -c $< -o $@
 
 all : $(NAME)
 
@@ -23,10 +24,11 @@ fclean: clean
 	$(RM) $(NAME)
 
 debug: all
-	$(CC) -lpthread $(OBJS) -o $(NAME) -fsanitize=address
+	$(CC) -lpthread $(OBJS) -o $(NAME)
+#$(CC) -lpthread $(OBJS) -o $(NAME) -fsanitize=address
 
 lldb: all
-	$(CC) -lpthread $(SRCS) -o $(NAME) -g
+	$(CC) $(CFLAGS) -lpthread $(SRCS) -o $(NAME) -g
 
 re:
 	make fclean

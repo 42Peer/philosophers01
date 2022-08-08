@@ -9,19 +9,19 @@ size_t	get_time(void)
 }
 
 void	smart_timer(t_philo *philo, size_t time)
-{	
+{
 	size_t	start;
 	size_t	diff;
 
 	start = get_time();
 	while (get_time() - start < time)
 	{
-		if (get_time() - philo->life_time > philo->info->arg.life_t)
-		{
-			philo->info->flags.die_f = 1;
-			return ;
-		}
-		usleep(500);
+		// if (get_time() - philo->life_time > philo->info->arg.life_t)
+		// {
+		// 	philo->info->flags.die_f = 1;
+		// 	return ;
+		// }
+		usleep(200);
 	}
 }
 
@@ -48,19 +48,21 @@ int	set_arg(int argc, char **argv, t_info *info)
 	return (SUCCESS);
 }
 
+void	philo_print_die(t_info *info, int idx, char *status)
+{
+	pthread_mutex_lock(&info->prt_mutex);
+	printf("%ld %d %s\n", get_time() - info->start_time, idx + 1, status);
+	pthread_mutex_unlock(&info->prt_mutex);
+}
+
 void	philo_print(t_info *info, int idx, char *status)
 {
 	struct timeval	t;
 
 	pthread_mutex_lock(&info->prt_mutex);
-	// gettimeofday(&t, NULL);
-	printf("%ld %d %s\n", get_time() - info->start_time, idx, status);
-	if (info->flags.err_f > 0
-		|| info->flags.die_f > 0)
-		return ;
+	if (!info->flags.die_f)
+		printf("%ld %d %s\n", get_time() - info->start_time, idx + 1, status);
 	pthread_mutex_unlock(&info->prt_mutex);
-		//|| info->flags.eat_f >= info->arg.philo_n)
-	
 }
 
 void	philo_fork(t_philo *philo)
@@ -76,13 +78,13 @@ void	philo_eat(t_philo *philo)
 	struct timeval t;
 
 	philo_print(philo->info, philo->idx, "is eating");
-//	if (philo->info->flags.die_f == 1)
-//		philo->life_time = gettimeofday(&t, NULL);
-	philo->life_time = philo->info->arg.life_t;
-	smart_timer(philo, philo->info->arg.eat_t);
-	(*philo).p_eat_cnt++;
 	if (philo->p_eat_cnt == philo->info->arg.eat_cnt)
 		philo->info->flags.eat_f++;
+	if (philo->info->flags.eat_f == philo->info->arg.philo_n)
+		exit(1);
+	philo->life_time = get_time();
+	smart_timer(philo, philo->info->arg.eat_t);
+	(*philo).p_eat_cnt++;
 }
 
 void	philo_sleep(t_philo *philo)
@@ -128,13 +130,8 @@ void	*philo_action(void *param)
 
 	philo = (t_philo *)param;
 	philo->life_time = get_time();
-	while (1)
+	while (!philo->info->flags.die_f)
 	{
-		// if (philo->info->flags.die_f == 0)
-		// {
-		// 	philo->life_time = gettimeofday(&t, NULL);
-		// 	philo->info->flags.die_f = 1;
-		// }
 		philo_fork(philo);
 		philo_eat(philo);
 		philo_sleep(philo);
@@ -154,7 +151,7 @@ t_philo	*init_philo(t_info *info)
 	philo = malloc((*info).arg.philo_n * sizeof(t_philo));
 	while (i < n)
 	{
-		philo[i].life_time = info->arg.life_t;
+		philo[i].life_time = get_time();
 		philo[i].idx = i;
 		philo[i].info = info;
 		philo[i].p_eat_cnt = 0;
@@ -173,7 +170,8 @@ int	main(int argc, char *argv[])
 {
 	t_info	info;
 	t_philo	*philo;
-	
+	int		i;
+
 	if (!(argc == 5 || argc == 6))
 		return (ERROR);
 
@@ -181,20 +179,40 @@ int	main(int argc, char *argv[])
 	init_info(&info);
 	philo = init_philo(&info);
 	while(1)
-	{	
-		// if (info.flags.eat_f == info.arg.philo_n)
-		// {
-		// 	philo_print(&info, 0, "HEY THIS IS THE END\n");
-		// 	exit(1);
-		// }
-		if (info.flags.die_f > 0)
+	{
+		i = 0;
+		while (i < info.arg.philo_n)
 		{
-			philo_print(&info, info.flags.die_f + 1, "IS DIED");
-			exit(1);
+			if (get_time() - philo[i].life_time >= info.arg.life_t)
+			{
+				info.flags.die_f = 1;
+				philo_print_die(&info, i, "died");
+				i = 0;
+				while (i < info.arg.philo_n)
+				{
+					pthread_join(philo[i].tid, NULL);
+					++i;
+				}
+				break;
+			}
+			if (info.flags.eat_f >= info.arg.philo_n)
+			{
+				i = 0;
+				info.flags.die_f = 1;
+				while (i < info.arg.philo_n)
+				{
+					pthread_join(philo[i].tid, NULL);
+					++i;
+				}
+				break ;
+			}
+			++i;
 		}
-		if (info.flags.err_f > 0)
-			exit(1);
+		if (info.flags.die_f)
+			break ;
 	}
+	free(philo);
+	free(info.fork_mutex);
 	return (0);
 }
 

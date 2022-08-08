@@ -55,49 +55,60 @@ void	philo_print_die(t_info *info, int idx, char *status)
 	pthread_mutex_unlock(&info->prt_mutex);
 }
 
-void	philo_print(t_info *info, int idx, char *status)
+void	philo_print(t_philo *philo, int idx, int status)
 {
 	struct timeval	t;
 
-	pthread_mutex_lock(&info->prt_mutex);
-	if (!info->flags.die_f)
-		printf("%ld %d %s\n", get_time() - info->start_time, idx + 1, status);
-	pthread_mutex_unlock(&info->prt_mutex);
+	pthread_mutex_lock(&philo->info->prt_mutex);
+	if (!philo->info->flags.die_f)
+	{
+		if (status == FORK)
+			printf("%ld %d has taken a fork\n", get_time() - philo->info->start_time, idx + 1);
+		else if (status == EATING)
+		{
+			printf("%ld %d is eating\n", get_time() - philo->info->start_time, idx + 1);
+			if (++(philo->p_eat_cnt) == philo->info->arg.eat_cnt)
+				philo->info->flags.eat_f++;
+		}
+		else if (status == SLEEPING)
+			printf("%ld %d is sleeping\n", get_time() - philo->info->start_time, idx + 1);
+		else if (status == THINKING)
+			printf("%ld %d is thinking\n", get_time() - philo->info->start_time, idx + 1);
+	}
+	pthread_mutex_unlock(&philo->info->prt_mutex);
 }
 
 void	philo_fork(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
-	philo_print(philo->info, philo->idx, "has taken a fork");
+	philo_print(philo, philo->idx, FORK);
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
-	philo_print(philo->info, philo->idx, "has taken a fork");
+	philo_print(philo, philo->idx, FORK);
 }
 
 void	philo_eat(t_philo *philo)
 {
 	struct timeval t;
 
-	philo_print(philo->info, philo->idx, "is eating");
-	if (philo->p_eat_cnt == philo->info->arg.eat_cnt)
-		philo->info->flags.eat_f++;
+	philo_print(philo, philo->idx, EATING);
+	// (*philo).p_eat_cnt++;
 	if (philo->info->flags.eat_f == philo->info->arg.philo_n)
 		exit(1);
 	philo->life_time = get_time();
 	smart_timer(philo, philo->info->arg.eat_t);
-	(*philo).p_eat_cnt++;
 }
 
 void	philo_sleep(t_philo *philo)
 {
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
-	philo_print(philo->info, philo->idx, "is sleeping");
+	philo_print(philo, philo->idx, SLEEPING);
 	smart_timer(philo, philo->info->arg.sleep_t);
 }
 
 void	philo_think(t_philo *philo)
 {
-	philo_print(philo->info, philo->idx, "is thinking");
+	philo_print(philo, philo->idx, THINKING);
 	usleep(50);
 }
 
@@ -197,6 +208,7 @@ int	main(int argc, char *argv[])
 			}
 			if (info.flags.eat_f >= info.arg.philo_n)
 			{
+				exit(1);
 				i = 0;
 				info.flags.die_f = 1;
 				while (i < info.arg.philo_n)

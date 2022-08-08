@@ -1,5 +1,7 @@
 #include "philo.h"
 
+int	start_f;
+
 size_t	get_time()
 {
 	struct timeval	time;
@@ -81,8 +83,6 @@ void	philo_eat(t_philo *philo)
 {
 
 	philo_print(philo, philo->idx, EATING);
-	// if (philo->info->flags.eat_f == philo->info->arg.philo_n)
-	// 	exit(1);
 	pthread_mutex_lock(&philo->info->t_mutex);
 	philo->life_time = get_time();
 	pthread_mutex_unlock(&philo->info->t_mutex);
@@ -129,18 +129,22 @@ int	init_info(t_info *info)
 void	*philo_action(void *param)
 {
 	t_philo *philo;
+
 	philo = (t_philo *)param;
+	while (!start_f);
 	pthread_mutex_lock(&philo->info->t_mutex);
+	philo->info->start_time = get_time();
 	philo->life_time = get_time();
 	pthread_mutex_unlock(&philo->info->t_mutex);
-	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
-		smart_timer(philo->info->arg.eat_t / 2);
 	if (philo->info->arg.philo_n == 1)
 	{
 		philo_print(philo, philo->idx, FORK);
 		while (!philo->info->flags.die_f);
 		return (NULL);
 	}
+	/* printf("start!!!\n"); */
+	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
+		smart_timer(philo->info->arg.eat_t / 2);
 	while (!philo->info->flags.die_f)
 	{
 		philo_fork(philo);
@@ -148,6 +152,17 @@ void	*philo_action(void *param)
 		philo_sleep(philo);
 		philo_think(philo);
 	}
+	/* while (!philo->info->flags.die_f && !(philo->info->flags.eat_f >= philo->info->arg.philo_n)) */
+	/* { */
+		/* if (!philo->info->flags.die_f && !(philo->info->flags.eat_f >= philo->info->arg.philo_n)) */
+			/* philo_fork(philo); */
+		/* if (!philo->info->flags.die_f && !(philo->info->flags.eat_f >= philo->info->arg.philo_n)) */
+			/* philo_eat(philo); */
+		/* if (!philo->info->flags.die_f && !(philo->info->flags.eat_f >= philo->info->arg.philo_n)) */
+			/* philo_sleep(philo); */
+		/* if (!philo->info->flags.die_f && !(philo->info->flags.eat_f >= philo->info->arg.philo_n)) */
+			/* philo_think(philo); */
+	/* } */
 	return (NULL);
 }
 
@@ -158,8 +173,8 @@ t_philo	*init_philo(t_info *info)
 	t_philo	*philo;
 
 	n = (*info).arg.philo_n;
-	i = 0;
 	philo = malloc((*info).arg.philo_n * sizeof(t_philo));
+	i = 0;
 	while (i < n)
 	{
 		philo[i].life_time = get_time();
@@ -168,12 +183,11 @@ t_philo	*init_philo(t_info *info)
 		philo[i].p_eat_cnt = 0;
 		++i;
 	}
-	i = 0;
-	while (i < n)
-	{
+	i = -1;
+	start_f = 0;
+	while (++i < n)
 		pthread_create(&philo[i].tid, NULL, &philo_action, &philo[i]);
-		++i;
-	}
+	start_f = 1;
 	return (philo);
 }
 
@@ -185,7 +199,6 @@ int	main(int argc, char *argv[])
 
 	if (!(argc == 5 || argc == 6))
 		return (ERROR);
-
 	set_arg(argc, argv, &info);
 	init_info(&info);
 	philo = init_philo(&info);
@@ -195,12 +208,16 @@ int	main(int argc, char *argv[])
 		while (i < info.arg.philo_n)
 		{
 			pthread_mutex_lock(&philo->info->t_mutex);
+			/* if (get_time() - philo[i].life_time < info.arg.life_t) */
+			/* { */
+				/* pthread_mutex_unlock(&philo->info->t_mutex); */
+				/* continue ; */
+			/* } */
 			if (get_time() - philo[i].life_time >= info.arg.life_t)
 			{
 				info.flags.die_f = 1;
 				philo_print_die(&info, i, "died");
 				i = 0;
-				printf("die_f end here\n");
 				pthread_mutex_unlock(&philo->info->t_mutex);
 				break;
 			}
@@ -217,16 +234,17 @@ int	main(int argc, char *argv[])
 		if (info.flags.die_f)
 			break ;
 	}
-	i = 0;
-	while (info.arg.philo_n >= 2 && i < info.arg.philo_n)
-	{
-		pthread_join(philo[i].tid, NULL);
-		++i;
-	}
+	i = -1;
+	while (++i < info.arg.philo_n)
+		pthread_detach(philo[i].tid);
+	/* while (++i < info.arg.philo_n) */
+		/* pthread_detach(philo[i].tid, NULL); */
 	free(philo);
 	free(info.fork_mutex);
 	return (0);
 }
+
+// 221번줄 1 조건 삭제
 
 //detach 되었을 때, mutex안됨
 //다 죽은 다음에 해야함

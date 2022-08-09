@@ -82,9 +82,9 @@ void	philo_eat(t_philo *philo)
 	philo_print(philo, philo->idx, EATING);
 	// if (philo->info->flags.eat_f == philo->info->arg.philo_n)
 	// 	exit(1);
-	// pthread_mutex_lock(&philo->info->t_mutex);
+	pthread_mutex_lock(&philo->info->t_mutex);
 	philo->life_time = get_time();
-	// pthread_mutex_unlock(&philo->info->t_mutex);
+	pthread_mutex_unlock(&philo->info->t_mutex);
 	smart_timer(philo->info->arg.eat_t);
 }
 
@@ -143,13 +143,13 @@ void	*philo_action(void *param)
 		smart_timer(philo->info->arg.eat_t / 2);
 	while (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
 	{
-		if (!philo->info->flags.die_f || philo->info->flags.eat_f < philo->info->arg.philo_n)
+		if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
 			philo_fork(philo);
-		if (!philo->info->flags.die_f || philo->info->flags.eat_f < philo->info->arg.philo_n)
+		if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
 			philo_eat(philo);
-		if (!philo->info->flags.die_f || philo->info->flags.eat_f < philo->info->arg.philo_n)
+		if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
 			philo_sleep(philo);
-		if (!philo->info->flags.die_f || philo->info->flags.eat_f < philo->info->arg.philo_n)
+		if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
 			philo_think(philo);
 //		philo_fork(philo);
 //		philo_eat(philo);
@@ -207,6 +207,8 @@ int	main(int argc, char *argv[])
 		while (i < info.arg.philo_n)
 		{
 			pthread_mutex_lock(&philo->info->t_mutex);
+			// if (eat_flag)
+			// 	philo[i].life_time = get_time();
 			if (get_time() - philo[i].life_time >= info.arg.life_t)
 			{
 				info.flags.die_f = 1;
@@ -216,7 +218,7 @@ int	main(int argc, char *argv[])
 				pthread_mutex_unlock(&philo->info->t_mutex);
 				break;
 			}
-			//pthread_mutex_unlock(&philo->info->t_mutex);
+			pthread_mutex_unlock(&philo->info->t_mutex);
 			if (info.flags.eat_f >= info.arg.philo_n)
 			{
 				i = 0;

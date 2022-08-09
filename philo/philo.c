@@ -201,7 +201,7 @@ int	main(int argc, char *argv[])
 	set_arg(argc, argv, &info);
 	init_info(&info);
 	philo = init_philo(&info);
-//	return (monitor())v
+//	return (monitor())
 	while(1)
 	{
 		i = 0;

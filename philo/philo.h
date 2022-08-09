@@ -25,6 +25,7 @@ typedef struct s_flag
 	int				eat_f;
 	int				die_f;
 	int				err_f;
+	int				start_f;
 }					t_flag;
 
 typedef struct s_info

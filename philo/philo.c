@@ -119,7 +119,7 @@ int	init_info(t_info *info)
 	}
 	pthread_mutex_init(&(*info).prt_mutex, NULL);
 	pthread_mutex_init(&(*info).t_mutex, NULL);
-	info->start_time = get_time();
+	// info->start_time = get_time();
 	info->flags.eat_f = 0;
 	info->flags.die_f = 0;
 	info->flags.err_f = 0;
@@ -129,18 +129,19 @@ int	init_info(t_info *info)
 void	*philo_action(void *param)
 {
 	t_philo *philo;
+
 	philo = (t_philo *)param;
-	pthread_mutex_lock(&philo->info->t_mutex);
-	philo->life_time = get_time();
-	pthread_mutex_unlock(&philo->info->t_mutex);
-	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
-		smart_timer(philo->info->arg.eat_t / 2);
 	if (philo->info->arg.philo_n == 1)
 	{
 		philo_print(philo, philo->idx, FORK);
 		while (!philo->info->flags.die_f);
 		return (NULL);
 	}
+	pthread_mutex_lock(&philo->info->t_mutex);
+	philo->life_time = get_time();
+	pthread_mutex_unlock(&philo->info->t_mutex);
+	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
+		smart_timer(philo->info->arg.eat_t / 2);
 	while (!philo->info->flags.die_f)
 	{
 		philo_fork(philo);
@@ -169,11 +170,16 @@ t_philo	*init_philo(t_info *info)
 		++i;
 	}
 	i = 0;
+	pthread_mutex_lock(&info->t_mutex);
 	while (i < n)
 	{
 		pthread_create(&philo[i].tid, NULL, &philo_action, &philo[i]);
 		++i;
 	}
+	usleep(100);
+	pthread_mutex_unlock(&info->t_mutex);
+	philo->info->start_time = get_time();
+	
 	return (philo);
 }
 
@@ -231,3 +237,9 @@ int	main(int argc, char *argv[])
 //detach 되었을 때, mutex안됨
 //다 죽은 다음에 해야함
 //근데 다시 확인은 해봐야함
+
+
+
+/* memo
+
+ */

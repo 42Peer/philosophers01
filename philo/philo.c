@@ -229,9 +229,9 @@ int	main(int argc, char *argv[])
 		}
 		if (philo->info->flags.die_f || philo->info->flags.eat_f >= philo->info->arg.philo_n)
 			break ;
-	}
-	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
-	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
+	} 
+	pthread_mutex_unlock(&philo->info->fork_mutex[i]);
+	pthread_mutex_unlock(&philo->info->fork_mutex[(i + 1) % philo->info->arg.philo_n]);
 	i = 0;
 	while (i < info.arg.philo_n)
 	{

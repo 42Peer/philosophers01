@@ -201,7 +201,7 @@ int	main(int argc, char *argv[])
 	set_arg(argc, argv, &info);
 	init_info(&info);
 	philo = init_philo(&info);
-//	return (monitor())
+//	return (monitor())v
 	while(1)
 	{
 		i = 0;
@@ -213,6 +213,8 @@ int	main(int argc, char *argv[])
 				info.flags.die_f = 1;
 				philo_print_die(&info, i, "died");
 				printf("die_f end here\n");
+				pthread_mutex_unlock(&philo->info->fork_mutex[i]);
+				pthread_mutex_unlock(&philo->info->fork_mutex[(i + 1) % philo->info->arg.philo_n]);
 				pthread_mutex_unlock(&philo->info->t_mutex);
 				break;
 			}
@@ -229,9 +231,7 @@ int	main(int argc, char *argv[])
 		}
 		if (philo->info->flags.die_f || philo->info->flags.eat_f >= philo->info->arg.philo_n)
 			break ;
-	} 
-	pthread_mutex_unlock(&philo->info->fork_mutex[i]);
-	pthread_mutex_unlock(&philo->info->fork_mutex[(i + 1) % philo->info->arg.philo_n]);
+	}
 	i = 0;
 	while (i < info.arg.philo_n)
 	{

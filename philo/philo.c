@@ -75,17 +75,16 @@ void	philo_fork(t_philo *philo)
 	philo_print(philo, philo->idx, FORK);
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo, philo->idx, FORK);
-
+}
 
 void	philo_eat(t_philo *philo)
 {
-
 	philo_print(philo, philo->idx, EATING);
 	// if (philo->info->flags.eat_f == philo->info->arg.philo_n)
 	// 	exit(1);
-	pthread_mutex_lock(&philo->info->t_mutex);
+	// pthread_mutex_lock(&philo->info->t_mutex);
 	philo->life_time = get_time();
-	pthread_mutex_unlock(&philo->info->t_mutex);
+	// pthread_mutex_unlock(&philo->info->t_mutex);
 	smart_timer(philo->info->arg.eat_t);
 }
 
@@ -138,8 +137,8 @@ void	*philo_action(void *param)
 		return (NULL);
 	}
 	pthread_mutex_lock(&philo->info->t_mutex);
-	pthread_mutex_unlock(&philo->info->t_mutex);
 	philo->life_time = get_time();
+	pthread_mutex_unlock(&philo->info->t_mutex);
 	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
 		smart_timer(philo->info->arg.eat_t / 2);
 	while (!philo->info->flags.die_f)
@@ -179,7 +178,6 @@ t_philo	*init_philo(t_info *info)
 	usleep(100);
 	pthread_mutex_unlock(&info->t_mutex);
 	philo->info->start_time = get_time();
-	
 	return (philo);
 }
 

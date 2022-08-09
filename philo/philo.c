@@ -99,7 +99,7 @@ void	philo_sleep(t_philo *philo)
 void	philo_think(t_philo *philo)
 {
 	philo_print(philo, philo->idx, THINKING);
-	usleep(1);
+	usleep(10);
 }
 
 int	init_info(t_info *info)
@@ -130,15 +130,15 @@ void	*philo_action(void *param)
 	t_philo *philo;
 
 	philo = (t_philo *)param;
+	pthread_mutex_lock(&philo->info->t_mutex);
+	philo->life_time = get_time();
+	pthread_mutex_unlock(&philo->info->t_mutex);
 	if (philo->info->arg.philo_n == 1)
 	{
 		philo_print(philo, philo->idx, FORK);
 		while (!philo->info->flags.die_f);
 		return (NULL);
 	}
-	pthread_mutex_lock(&philo->info->t_mutex);
-	philo->life_time = get_time();
-	pthread_mutex_unlock(&philo->info->t_mutex);
 	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
 		smart_timer(philo->info->arg.eat_t / 2);
 	while (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
@@ -218,7 +218,7 @@ int	main(int argc, char *argv[])
 				pthread_mutex_unlock(&philo->info->t_mutex);
 				break;
 			}
-			pthread_mutex_unlock(&philo->info->t_mutex);
+			// pthread_mutex_unlock(&philo->info->t_mutex);
 			if (info.flags.eat_f >= info.arg.philo_n)
 			{
 				i = 0;

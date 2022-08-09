@@ -2,7 +2,7 @@ CC = cc
 
 NAME = philo
 
-CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -Wall -Werror -Wextra -fsanitize=address
 # CFLAGS = -Wall -Werror -Wextra -fsanitize=thread
 
 SRCS = philo.c ft_atoi.c

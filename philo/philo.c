@@ -2,7 +2,7 @@
 
 size_t	get_time()
 {
-	struct timeval	time;
+	struct	timeval	time;
 
 	gettimeofday(&time, NULL);
 	return(time.tv_sec * 1000 + time.tv_usec / 1000);
@@ -24,7 +24,7 @@ int	set_arg(int argc, char **argv, t_info *info)
 		return (ERROR);
 	(*info).arg.life_t = ft_atoi(argv[2]);
 	if ((*info).arg.life_t < 0)
-		return (ERROR);
+			return (ERROR);
 	(*info).arg.eat_t = ft_atoi(argv[3]);
 	if ((*info).arg.eat_t < 0)
 		return (ERROR);
@@ -49,7 +49,6 @@ void	philo_print_die(t_info *info, int idx, char *status)
 
 void	philo_print(t_philo *philo, int idx, int status)
 {
-
 	pthread_mutex_lock(&philo->info->prt_mutex);
 	if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
 	{
@@ -77,7 +76,7 @@ void	philo_fork(t_philo *philo)
 	philo_print(philo, philo->idx, FORK);
 }
 
-void	philo_eat(t_philo *philo)
+void philo_eat(t_philo *philo)
 {
 	philo_print(philo, philo->idx, EATING);
 	// if (philo->info->flags.eat_f == philo->info->arg.philo_n)
@@ -125,6 +124,13 @@ int	init_info(t_info *info)
 	return (SUCCESS);
 }
 
+void	*philo_action_1(t_philo *philo)
+{
+	philo_print(philo, philo->idx, FORK);
+	while (!philo->info->flags.die_f);
+	return (NULL);
+}
+
 void	*philo_action(void *param)
 {
 	t_philo *philo;
@@ -135,9 +141,10 @@ void	*philo_action(void *param)
 	pthread_mutex_unlock(&philo->info->t_mutex);
 	if (philo->info->arg.philo_n == 1)
 	{
-		philo_print(philo, philo->idx, FORK);
-		while (!philo->info->flags.die_f);
-		return (NULL);
+		// philo_print(philo, philo->idx, FORK);
+		// while (!philo->info->flags.die_f);
+		// return (NULL);
+		return (philo_action_1(philo));
 	}
 	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
 		smart_timer(philo->info->arg.eat_t / 2);
@@ -151,23 +158,22 @@ void	*philo_action(void *param)
 			philo_sleep(philo);
 		if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
 			philo_think(philo);
-//		philo_fork(philo);
-//		philo_eat(philo);
-//		philo_sleep(philo);
-//		philo_think(philo);
 	}
 	return (NULL);
 }
 
-t_philo	*init_philo(t_info *info)
+int	init_philo(t_philo *philo, t_info *info)
 {
 	int		n;
 	int		i;
-	t_philo	*philo;
+	// t_philo	*philo;
 
+	printf("init_philo\n");
 	n = (*info).arg.philo_n;
 	i = 0;
 	philo = malloc((*info).arg.philo_n * sizeof(t_philo));
+	if (!philo)
+		return (ERROR);
 	while (i < n)
 	{
 		philo[i].life_time = get_time();
@@ -186,22 +192,14 @@ t_philo	*init_philo(t_info *info)
 	usleep(100);
 	pthread_mutex_unlock(&info->t_mutex);
 	philo->info->start_time = get_time();
-	return (philo);
+	return (SUCCESS);
 }
 
-int	main(int argc, char *argv[])
+int monitoring(t_info info, t_philo *philo)
 {
-	t_info	info;
-	t_philo	*philo;
-	int		i;
+	int	i;
 
-	if (!(argc == 5 || argc == 6))
-		return (ERROR);
-
-	set_arg(argc, argv, &info);
-	init_info(&info);
-	philo = init_philo(&info);
-//	return (monitor())
+	printf("Monitoring\n");
 	while(1)
 	{
 		i = 0;
@@ -241,6 +239,85 @@ int	main(int argc, char *argv[])
 	free(philo);
 	free(info.fork_mutex);
 	return (0);
+}
+
+//void	use(void)
+//{
+//	printf("\nusage: \n
+//			./philo 'number_of_philosophers' 'time_to_die' 'time_to_eat' 'time_to_sleep' '[number_of_times_each_philosopher_must_eat]'
+//			\n");
+//}
+
+int	main(int argc, char *argv[])
+{
+	t_info	info;
+	t_philo	*philo;
+	// int		check;
+
+	if (!(argc == 5 || argc == 6))
+		return (ERROR); 
+	if (set_arg(argc, argv, &info) == ERROR)
+		return (ERROR);
+	philo = NULL;
+	// if (!check && init_info(&info) && init_philo(philo, &info))
+	// 	check = ERROR;
+	// if (!check)
+	// 	monitoring(info, philo);
+	// if (!init_info(&info) && !init_philo(philo, &info))
+	// 	monitoring(info, philo);
+	// check = 0;
+	// if (!check && init_info(&info))
+	// 	check = ERROR;
+	// if (!check && init_philo(philo, &info))
+	// 	check = ERROR;
+	// if (!check)
+	// 	monitoring(info, philo);
+	// (!a && !b) == (a || b)
+	init_info(&info);
+	init_philo(philo, &info);
+	monitoring(info, philo);
+	free(philo);
+	free(info.fork_mutex);
+	return (0);
+// 	while(1)
+// 	{
+// 		i = 0;
+// 		while (i < info.arg.philo_n)
+// 		{
+// 			pthread_mutex_lock(&philo->info->t_mutex);
+// 			if (get_time() - philo[i].life_time >= info.arg.life_t)
+// 			{
+// 				info.flags.die_f = 1;
+// 				philo_print_die(&info, i, "died");
+// 				printf("die_f end here\n");
+// 				pthread_mutex_unlock(&philo->info->fork_mutex[i]);
+// 				pthread_mutex_unlock(&philo->info->fork_mutex[(i + 1) % philo->info->arg.philo_n]);
+// 				pthread_mutex_unlock(&philo->info->t_mutex);
+// 				break;
+// 			}
+// 			// pthread_mutex_unlock(&philo->info->t_mutex);
+// 			if (info.flags.eat_f >= info.arg.philo_n)
+// 			{
+// //				info.flags.die_f = 1;
+// 				printf("eat_f end here\n");
+// 				pthread_mutex_unlock(&philo->info->t_mutex);
+// 				break ;
+// 			}
+// 			pthread_mutex_unlock(&philo->info->t_mutex);
+// 			++i;
+// 		}
+// 		if (philo->info->flags.die_f || philo->info->flags.eat_f >= philo->info->arg.philo_n)
+// 			break ;
+// 	}
+	// i = 0;
+	// while (i < info.arg.philo_n)
+	// {
+	// 	pthread_join(philo[i].tid, NULL);
+	// 	++i;
+	// }
+	// free(philo);
+	// free(info.fork_mutex);
+	// return (0);
 }
 
 //detach 되었을 때, mutex안됨

@@ -141,12 +141,20 @@ void	*philo_action(void *param)
 	pthread_mutex_unlock(&philo->info->t_mutex);
 	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
 		smart_timer(philo->info->arg.eat_t / 2);
-	while (!philo->info->flags.die_f)
+	while (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
 	{
-		philo_fork(philo);
-		philo_eat(philo);
-		philo_sleep(philo);
-		philo_think(philo);
+		if (!philo->info->flags.die_f || philo->info->flags.eat_f < philo->info->arg.philo_n)
+			philo_fork(philo);
+		if (!philo->info->flags.die_f || philo->info->flags.eat_f < philo->info->arg.philo_n)
+			philo_eat(philo);
+		if (!philo->info->flags.die_f || philo->info->flags.eat_f < philo->info->arg.philo_n)
+			philo_sleep(philo);
+		if (!philo->info->flags.die_f || philo->info->flags.eat_f < philo->info->arg.philo_n)
+			philo_think(philo);
+//		philo_fork(philo);
+//		philo_eat(philo);
+//		philo_sleep(philo);
+//		philo_think(philo);
 	}
 	return (NULL);
 }
@@ -208,17 +216,19 @@ int	main(int argc, char *argv[])
 				pthread_mutex_unlock(&philo->info->t_mutex);
 				break;
 			}
-			pthread_mutex_unlock(&philo->info->t_mutex);
+			//pthread_mutex_unlock(&philo->info->t_mutex);
 			if (info.flags.eat_f >= info.arg.philo_n)
 			{
 				i = 0;
-				info.flags.die_f = 1;
+//				info.flags.die_f = 1;
 				printf("eat_f end here\n");
+				pthread_mutex_unlock(&philo->info->t_mutex);
 				break ;
 			}
+			pthread_mutex_unlock(&philo->info->t_mutex);
 			++i;
 		}
-		if (info.flags.die_f)
+		if (philo->info->flags.die_f || philo->info->flags.eat_f >= philo->info->arg.philo_n)
 			break ;
 	}
 	i = 0;
@@ -235,9 +245,3 @@ int	main(int argc, char *argv[])
 //detach 되었을 때, mutex안됨
 //다 죽은 다음에 해야함
 //근데 다시 확인은 해봐야함
-
-
-
-/* memo
-
- */

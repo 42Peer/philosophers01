@@ -75,7 +75,7 @@ void	philo_fork(t_philo *philo)
 	philo_print(philo, philo->idx, FORK);
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo, philo->idx, FORK);
-}
+
 
 void	philo_eat(t_philo *philo)
 {
@@ -138,8 +138,8 @@ void	*philo_action(void *param)
 		return (NULL);
 	}
 	pthread_mutex_lock(&philo->info->t_mutex);
-	philo->life_time = get_time();
 	pthread_mutex_unlock(&philo->info->t_mutex);
+	philo->life_time = get_time();
 	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
 		smart_timer(philo->info->arg.eat_t / 2);
 	while (!philo->info->flags.die_f)

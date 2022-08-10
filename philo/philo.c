@@ -90,39 +90,16 @@ void	philo_eat(t_philo *philo)
 
 void	philo_sleep(t_philo *philo)
 {
-	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
-	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo, philo->idx, SLEEPING);
+	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
+	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
 	smart_timer(philo->info->arg.sleep_t);
 }
 
 void	philo_think(t_philo *philo)
 {
 	philo_print(philo, philo->idx, THINKING);
-	usleep(10);
-}
-
-int	init_info(t_info *info)
-{
-	int	i;
-
-	(*info).fork_mutex = malloc(sizeof(pthread_mutex_t) * (*info).arg.philo_n);
-	if ((*info).fork_mutex == NULL)
-		return (ERROR);
-	i = 0;
-	while (i < (*info).arg.philo_n)
-	{
-		if (pthread_mutex_init(&(*info).fork_mutex[i], PTHREAD_MUTEX_NORMAL))
-			return (ERROR);
-		++i;
-	}
-	pthread_mutex_init(&(*info).prt_mutex, NULL);
-	pthread_mutex_init(&(*info).t_mutex, NULL);
-	// info->start_time = get_time();
-	info->flags.eat_f = 0;
-	info->flags.die_f = 0;
-	info->flags.err_f = 0;
-	return (SUCCESS);
+	usleep(200);
 }
 
 void	*philo_action(void *param)
@@ -139,8 +116,8 @@ void	*philo_action(void *param)
 		while (!philo->info->flags.die_f);
 		return (NULL);
 	}
-	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
-		smart_timer(philo->info->arg.eat_t / 2);
+	// if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
+	// 	smart_timer(philo->info->arg.eat_t / 2);
 	while (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
 	{
 		if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
@@ -187,6 +164,29 @@ t_philo	*init_philo(t_info *info)
 	pthread_mutex_unlock(&info->t_mutex);
 	philo->info->start_time = get_time();
 	return (philo);
+}
+
+int	init_info(t_info *info)
+{
+	int	i;
+
+	(*info).fork_mutex = malloc(sizeof(pthread_mutex_t) * (*info).arg.philo_n);
+	if ((*info).fork_mutex == NULL)
+		return (ERROR);
+	i = 0;
+	while (i < (*info).arg.philo_n)
+	{
+		if (pthread_mutex_init(&(*info).fork_mutex[i], PTHREAD_MUTEX_NORMAL))
+			return (ERROR);
+		++i;
+	}
+	pthread_mutex_init(&(*info).prt_mutex, NULL);
+	pthread_mutex_init(&(*info).t_mutex, NULL);
+	// info->start_time = get_time();
+	info->flags.eat_f = 0;
+	info->flags.die_f = 0;
+	info->flags.err_f = 0;
+	return (SUCCESS);
 }
 
 int	main(int argc, char *argv[])

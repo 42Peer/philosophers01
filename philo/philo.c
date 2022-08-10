@@ -71,8 +71,8 @@ void	philo_print(t_philo *philo, int idx, int status)
 
 void	philo_fork(t_philo *philo)
 {
-	if (philo->idx % 2 == 0)
-		usleep(30);
+	// if (philo->idx % 2 == 0)
+	// 	usleep(30);
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo, philo->idx, FORK);
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);

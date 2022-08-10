@@ -20,16 +20,16 @@ void	smart_timer(size_t time)
 int	set_arg(int argc, char **argv, t_info *info)
 {
 	(*info).arg.philo_n =ft_atoi(argv[1]);
-	if ((*info).arg.philo_n <= 0)
+	if ((*info).arg.philo_n < 0)
 		return (ERROR);
 	(*info).arg.life_t = ft_atoi(argv[2]);
-	if ((*info).arg.life_t <= 0)
+	if ((*info).arg.life_t < 0)
 		return (ERROR);
 	(*info).arg.eat_t = ft_atoi(argv[3]);
-	if ((*info).arg.eat_t <= 0)
+	if ((*info).arg.eat_t < 0)
 		return (ERROR);
 	(*info).arg.sleep_t = ft_atoi(argv[4]);
-	if ((*info).arg.sleep_t <= 0)
+	if ((*info).arg.sleep_t < 0)
 		return (ERROR);
 	if (argc == 6)
 	{
@@ -49,19 +49,24 @@ void	philo_print_die(t_info *info, int idx, char *status)
 
 void	philo_print(t_philo *philo, int idx, int status)
 {
+
 	pthread_mutex_lock(&philo->info->prt_mutex);
-	if (status == FORK)
-		printf("%ld %d has taken a fork\n", get_time() - philo->info->start_time, idx + 1);
-	else if (status == EATING)
-		printf("%ld %d is eating\n", get_time() - philo->info->start_time, idx + 1);
-	else if (status == SLEEPING)
-		printf("%ld %d is sleeping\n", get_time() - philo->info->start_time, idx + 1);
-	else if (status == THINKING)
-		printf("%ld %d is thinking\n", get_time() - philo->info->start_time, idx + 1);
-	else if (status == DIED)
-		printf("%ld %d is died\n", get_time() - philo->info->start_time, idx + 1);
-	if (status != DIED)
-		pthread_mutex_unlock(&philo->info->prt_mutex);
+	if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
+	{
+		if (status == FORK)
+			printf("%ld %d has taken a fork\n", get_time() - philo->info->start_time, idx + 1);
+		else if (status == EATING)
+		{
+			printf("%ld %d is eating\n", get_time() - philo->info->start_time, idx + 1);
+			if (++(philo->p_eat_cnt) == philo->info->arg.eat_cnt)
+				philo->info->flags.eat_f++;
+		}
+		else if (status == SLEEPING)
+			printf("%ld %d is sleeping\n", get_time() - philo->info->start_time, idx + 1);
+		else if (status == THINKING)
+			printf("%ld %d is thinking\n", get_time() - philo->info->start_time, idx + 1);
+	}
+	pthread_mutex_unlock(&philo->info->prt_mutex);
 }
 
 void	philo_fork(t_philo *philo)
@@ -75,9 +80,9 @@ void	philo_fork(t_philo *philo)
 void	philo_eat(t_philo *philo)
 {
 	philo_print(philo, philo->idx, EATING);
+	// if (philo->info->flags.eat_f == philo->info->arg.philo_n)
+	// 	exit(1);
 	pthread_mutex_lock(&philo->info->t_mutex);
-	if (++(philo->p_eat_cnt) == philo->info->arg.eat_cnt)
-		philo->info->flags.eat_f++;
 	philo->life_time = get_time();
 	pthread_mutex_unlock(&philo->info->t_mutex);
 	smart_timer(philo->info->arg.eat_t);
@@ -136,12 +141,20 @@ void	*philo_action(void *param)
 	}
 	if (philo->info->arg.philo_n % 2 == 0 && philo->idx % 2 != 0)
 		smart_timer(philo->info->arg.eat_t / 2);
-	while (1)
+	while (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
 	{
-		philo_fork(philo);
-		philo_eat(philo);
-		philo_sleep(philo);
-		philo_think(philo);
+		if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
+			philo_fork(philo);
+		if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
+			philo_eat(philo);
+		if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
+			philo_sleep(philo);
+		if (!philo->info->flags.die_f && philo->info->flags.eat_f < philo->info->arg.philo_n)
+			philo_think(philo);
+//		philo_fork(philo);
+//		philo_eat(philo);
+//		philo_sleep(philo);
+//		philo_think(philo);
 	}
 	return (NULL);
 }
@@ -176,50 +189,6 @@ t_philo	*init_philo(t_info *info)
 	return (philo);
 }
 
-/*
- * monitor역할
- * - 수명 체크
- * - 식사 횟수 체크
- * - 
- */
-void monitor(t_info *info, t_philo *philo)
-{
-	int	i;
-
-	while(1)
-	{
-		i = 0;
-		while (i < info->arg.philo_n)
-		{
-			pthread_mutex_lock(&philo->info->t_mutex);
-			if (get_time() - philo[i].life_time >= info->arg.life_t)
-			{
-				// pthread_mutex_lock(&philo->info->prt_mutex);
-				info->flags.die_f = 1;
-				philo_print(philo, i, DIED);
-				printf("die_f end here\n");
-				pthread_mutex_unlock(&philo->info->fork_mutex[i]);
-				pthread_mutex_unlock(&philo->info->fork_mutex[(i + 1) % philo->info->arg.philo_n]);
-				pthread_mutex_unlock(&philo->info->t_mutex);
-				break;
-			}
-			// pthread_mutex_unlock(&philo->info->t_mutex);
-			else if (info->flags.eat_f >= info->arg.philo_n)
-			{
-				pthread_mutex_lock(&philo->info->prt_mutex);
-//				info.flags.die_f = 1;
-				printf("eat_f end here\n");
-				pthread_mutex_unlock(&philo->info->t_mutex);
-				break ;
-			}
-			pthread_mutex_unlock(&philo->info->t_mutex);
-			++i;
-		}
-		if (philo->info->flags.die_f || philo->info->flags.eat_f >= philo->info->arg.philo_n)
-			break ;
-	}
-}
-
 int	main(int argc, char *argv[])
 {
 	t_info	info;
@@ -232,14 +201,48 @@ int	main(int argc, char *argv[])
 	set_arg(argc, argv, &info);
 	init_info(&info);
 	philo = init_philo(&info);
-	monitor(&info, philo);
+//	return (monitor())
+	while(1)
+	{
+		i = 0;
+		while (i < info.arg.philo_n)
+		{
+			pthread_mutex_lock(&philo->info->t_mutex);
+			if (get_time() - philo[i].life_time >= info.arg.life_t)
+			{
+				info.flags.die_f = 1;
+				philo_print_die(&info, i, "died");
+				printf("die_f end here\n");
+				pthread_mutex_unlock(&philo->info->fork_mutex[i]);
+				pthread_mutex_unlock(&philo->info->fork_mutex[(i + 1) % philo->info->arg.philo_n]);
+				pthread_mutex_unlock(&philo->info->t_mutex);
+				break;
+			}
+			// pthread_mutex_unlock(&philo->info->t_mutex);
+			if (info.flags.eat_f >= info.arg.philo_n)
+			{
+//				info.flags.die_f = 1;
+				printf("eat_f end here\n");
+				pthread_mutex_unlock(&philo->info->t_mutex);
+				break ;
+			}
+			pthread_mutex_unlock(&philo->info->t_mutex);
+			++i;
+		}
+		if (philo->info->flags.die_f || philo->info->flags.eat_f >= philo->info->arg.philo_n)
+			break ;
+	}
 	i = 0;
 	while (i < info.arg.philo_n)
 	{
-		pthread_detach(philo[i].tid);
+		pthread_join(philo[i].tid, NULL);
 		++i;
 	}
 	free(philo);
 	free(info.fork_mutex);
 	return (0);
 }
+
+//detach 되었을 때, mutex안됨
+//다 죽은 다음에 해야함
+//근데 다시 확인은 해봐야함

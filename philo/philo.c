@@ -211,7 +211,7 @@ int	main(int argc, char *argv[])
 		while (i < info.arg.philo_n)
 		{
 			pthread_mutex_lock(&philo->info->t_mutex);
-			if (get_time() - philo[i].life_time >= info.arg.life_t)
+			if (get_time() - philo[i].life_time > info.arg.life_t)
 			{
 				info.flags.die_f = 1;
 				philo_print_die(&info, i, "died");

@@ -14,7 +14,7 @@ void	smart_timer(size_t time)
 
 	start = get_time();
 	while (get_time() - start < time)
-		usleep(200);
+		usleep(100);
 }
 
 int	set_arg(int argc, char **argv, t_info *info)
@@ -71,6 +71,8 @@ void	philo_print(t_philo *philo, int idx, int status)
 
 void	philo_fork(t_philo *philo)
 {
+	// if (philo->idx % 2 == 0)
+	// 	usleep(30);
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo, philo->idx, FORK);
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
@@ -90,8 +92,8 @@ void	philo_eat(t_philo *philo)
 
 void	philo_sleep(t_philo *philo)
 {
-	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
+	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
 	philo_print(philo, philo->idx, SLEEPING);
 	smart_timer(philo->info->arg.sleep_t);
 }
@@ -99,7 +101,7 @@ void	philo_sleep(t_philo *philo)
 void	philo_think(t_philo *philo)
 {
 	philo_print(philo, philo->idx, THINKING);
-	usleep(10);
+	usleep(70);
 }
 
 int	init_info(t_info *info)
@@ -177,15 +179,16 @@ t_philo	*init_philo(t_info *info)
 		++i;
 	}
 	i = 0;
+	philo->info->start_time = get_time();
 	pthread_mutex_lock(&info->t_mutex);
 	while (i < n)
 	{
 		pthread_create(&philo[i].tid, NULL, &philo_action, &philo[i]);
 		++i;
 	}
-	usleep(100);
+	// usleep(100);
 	pthread_mutex_unlock(&info->t_mutex);
-	philo->info->start_time = get_time();
+	// philo->info->start_time = get_time();
 	return (philo);
 }
 
@@ -208,7 +211,7 @@ int	main(int argc, char *argv[])
 		while (i < info.arg.philo_n)
 		{
 			pthread_mutex_lock(&philo->info->t_mutex);
-			if (get_time() - philo[i].life_time >= info.arg.life_t)
+			if (get_time() - philo[i].life_time > info.arg.life_t)
 			{
 				info.flags.die_f = 1;
 				philo_print_die(&info, i, "died");
@@ -231,6 +234,12 @@ int	main(int argc, char *argv[])
 		}
 		if (philo->info->flags.die_f || philo->info->flags.eat_f >= philo->info->arg.philo_n)
 			break ;
+	}
+	i = 0;
+	while (i < info.arg.philo_n)
+	{
+		pthread_mutex_unlock(&info.fork_mutex[i]);
+		++i;
 	}
 	i = 0;
 	while (i < info.arg.philo_n)

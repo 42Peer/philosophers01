@@ -27,7 +27,7 @@ void	philo_print_die(t_info *info, int idx, char *status)
 void	philo_print(t_philo *philo, int idx, int status)
 {
 	pthread_mutex_lock(&philo->info->prt_mutex);
-	pthread_mutex_lock(&philo->info->t_mutex);
+	
 	if (!philo->info->flags.die_f)
 	{
 		if (status == FORK)
@@ -43,7 +43,6 @@ void	philo_print(t_philo *philo, int idx, int status)
 		else if (status == THINKING)
 			printf("%ld %d is thinking\n", get_time() - philo->info->start_time, idx + 1);
 	}
-	pthread_mutex_unlock(&philo->info->t_mutex);
 	pthread_mutex_unlock(&philo->info->prt_mutex);
 }
 

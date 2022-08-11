@@ -26,28 +26,30 @@ typedef struct s_mutex
 
 typedef struct s_philo
 {
-	int 		idx;
-	pthread_t	tid;
-	int			cnt_eat;
-	size_t		life_time;
+	int				idx;
+	pthread_t		tid;
+	int				cnt_eat;
+	size_t			last_eat_t;
+	t_info			*info;
+	pthread_mutex_t	*left;
+	pthread_mutex_t	*right;
 }	t_philo;
 
 typedef struct s_arg
 {
 	int	n_philo;
-	int t2die;
-	int t2eat;
-	int t2sleep;
+	int die_time;
+	int eat_time;
+	int sleep_time;
 	int must_eat;
 }	t_arg;
 
 typedef struct s_info
 {
 	t_arg		arg;
-	t_philo 	*philo;
 	t_mutex 	mutex;
 	t_status 	stat;
-	int			at;
+	size_t		birth_t;
 }	t_info;
 
 enum e_enum

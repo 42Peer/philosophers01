@@ -107,7 +107,7 @@ void *action(void *param)
 	pthread_mutex_unlock(&philo->info->mutex.print);
 	while (!take_fork(philo)
 		 && !eating(philo, &philo->info->mutex, &philo->info->arg)
-		 && !sleep_thinking(philo, &philo->info->arg))
+		 && !sleep_thinking(philo, &philo->info->arg));
 	return (NULL);
 }
 

@@ -170,26 +170,68 @@ int	parse_arg(int argc, char **argv, t_info *info)
 	return (SUCCESS);
 }
 
-// void	ft_free(t_philo **philo)
-// {
-//		int i = -1;
-// 		while (++i < philo->arg.n_philo)
-//			pthread_mutex_destroy(philo[i]->info->mutex->fork);
-//		pthread_mutex_destroy(philo->info->mutex.print);
-// }
-
-int main(int argc, char **argv)
+void	mutex_free(t_philo **philo)
 {
-	t_philo	*philo;
+	int i;
+
+	i = -1;
+	while (++i < (*philo)->info->arg.n_philo)
+		pthread_mutex_destroy(&(*philo)->info->mutex.fork[i]);
+	pthread_mutex_destroy(&(*philo)->info->mutex.print);
+}
+
+void	monitor(t_philo *philo)
+{
+	int	i;
+	int	kill_;
+
+	kill_ = 0;
+	while (1)
+	{
+		i = 0;
+		while (i < philo->info->arg.n_philo)
+		{
+			pthread_mutex_lock(&philo->info->mutex.print);
+			kill_ = philo->info->stat.end;
+			if (get_time() - philo[i].last_eat_t > philo->info->arg.die_time)
+			{
+				philo->info->stat.end++;
+				printf("%ld %d isdied\n", get_time() - philo->info->birth_t, i);
+				pthread_mutex_unlock(&philo->info->mutex.print);
+				return ;
+			}
+			else
+				pthread_mutex_unlock(&philo->info->mutex.print);
+
+			pthread_mutex_lock(&philo->info->mutex.print);
+			if (philo->info->stat.n_full >= philo->info->arg.must_eat) 
+			{
+				philo->info->stat.end++
+				pthread_mutex_unlock(&philo->info->mutex.print);
+				return ;
+			}
+			else
+				pthread_mutex_unlock(&philo->info->mutex.print);
+		}
+	}
+}
+
+int	main(int argc, char **argv)
+{
+	int		i;
 	t_info	info;
+	t_philo	*philo;
 
 	if (parse_arg(argc, argv, &info) == ERROR)
 		return (ERROR);
 	if (init_info(&philo, &info) == SUCCESS)
-		printf("monitor start!\n");
-	// 	monitor();
+		monitor(philo);
 	// free(philo);
 	// free(philo[0].l_fork);
-	// free(ifno.mutex.fork);
+//  free(ifno.mutex.fork);
+	i = -1;
+	while (++i < philo->info->arg.n_philo)
+		pthread_join(philo[i].tid, NULL)
+	mutex_free(&philo);;
 	return (0);
 }

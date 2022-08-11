@@ -20,11 +20,21 @@ void	smart_timer(size_t time)
 		usleep(100);
 }
 
-void	philo_print(t_info *info, int idx, char *str)
+void	philo_print(t_philo *philo, t_info *info, int idx, char *str)
 {
 	pthread_mutex_lock(&info->mutex.print);
 	if (info->stat.end == 0)
 		printf("%ld %d %s\n", get_time() - info->birth_t, idx + 1, str);
+	if (strstr(str, "is eating"))
+	{
+		philo->last_eat_t = get_time();
+		if (++(philo->cnt_eat) == philo->info->arg.must_eat)
+		{
+			philo->info->stat.n_full++;
+			if (philo->info->stat.n_full == philo->info->arg.n_philo)
+				philo->info->stat.end++;
+		}
+	}
 	pthread_mutex_unlock(&info->mutex.print);
 }
 
@@ -40,21 +50,21 @@ int	take_fork(t_philo *philo)
 	if (philo->idx % 2 == 0)
 	{
 		pthread_mutex_lock(philo->left);
-		philo_print(philo->info, philo->idx, "has taken a fork");
+		philo_print(philo, philo->info, philo->idx, "has taken a fork");
 		pthread_mutex_lock(philo->right);
-		philo_print(philo->info, philo->idx, "has taken a fork");
+		philo_print(philo, philo->info, philo->idx, "has taken a fork");
 	}
 	else
 	{
 		pthread_mutex_lock(philo->right);
-		philo_print(philo->info, philo->idx, "has taken a fork");
+		philo_print(philo, philo->info, philo->idx, "has taken a fork");
 		pthread_mutex_lock(philo->left);
-		philo_print(philo->info, philo->idx, "has taken a fork");
+		philo_print(philo, philo->info, philo->idx, "has taken a fork");
 	}
 	return (SUCCESS);
 }
 
-int	eating(t_philo *philo, t_mutex *mutex, t_arg *arg)
+int	eating(t_philo *philo, t_arg *arg)
 {
 	int	kill_;
 
@@ -63,18 +73,8 @@ int	eating(t_philo *philo, t_mutex *mutex, t_arg *arg)
 	pthread_mutex_unlock(&philo->info->mutex.print);
 	if (kill_)
 		return(ERROR);
-	philo_print(philo->info, philo->idx, "is eating");
-	pthread_mutex_lock(&mutex->print);
-	philo->last_eat_t = get_time();
-	if (++(philo->cnt_eat) == philo->info->arg.must_eat)
-	{
-		philo->info->stat.n_full++;
-		if (philo->info->stat.n_full == philo->info->arg.n_philo)
-			philo->info->stat.end++;
-	}
-	pthread_mutex_unlock(&mutex->print);
+	philo_print(philo, philo->info, philo->idx, "is eating");
 	smart_timer(arg->eat_time);
-	
 	return (SUCCESS);
 }
 
@@ -90,9 +90,9 @@ int	sleep_thinking(t_philo *philo, t_arg *arg)
 	pthread_mutex_unlock(philo->left);
 	if (kill_)
 		return(ERROR);
-	philo_print(philo->info, philo->idx, "is sleeping");
+	philo_print(philo, philo->info, philo->idx, "is sleeping");
 	smart_timer(arg->sleep_time);
-	philo_print(philo->info, philo->idx, "is thinking");
+	philo_print(philo, philo->info, philo->idx, "is thinking");
 	// usleep(10);
 	return (SUCCESS);
 }
@@ -106,7 +106,7 @@ void *action(void *param)
 	philo->last_eat_t = get_time();
 	pthread_mutex_unlock(&philo->info->mutex.print);
 	while (!take_fork(philo)
-		 && !eating(philo, &philo->info->mutex, &philo->info->arg)
+		 && !eating(philo, &philo->info->arg)
 		 && !sleep_thinking(philo, &philo->info->arg));
 	return (NULL);
 }

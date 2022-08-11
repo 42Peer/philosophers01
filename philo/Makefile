@@ -2,8 +2,8 @@ CC = cc
 
 NAME = philo
 
-# CFLAGS = -Wall -Werror -Wextra
-CFLAGS = -Wall -Werror -Wextra -fsanitize=thread
+CFLAGS = -Wall -Werror -Wextra
+# CFLAGS = -Wall -Werror -Wextra -fsanitize=thread
 
 SRCS = philo.c ft_atoi.c
 
@@ -28,7 +28,7 @@ debug: all
 #$(CC) -lpthread $(OBJS) -o $(NAME) -fsanitize=address
 
 lldb: all
-	$(CC) $(CFLAGS) -lpthread $(SRCS) -o $(NAME) -g
+	$(CC) $(CFLAGS) -lpthread $(SRCS) -o $(NAME) -g3
 
 re:
 	make fclean

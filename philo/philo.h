@@ -21,19 +21,7 @@ typedef struct s_mutex
 {
 	pthread_mutex_t	*fork;
 	pthread_mutex_t print;
-	pthread_mutex_t	sub;
 }	t_mutex;
-
-typedef struct s_philo
-{
-	int				idx;
-	pthread_t		tid;
-	int				cnt_eat;
-	size_t			last_eat_t;
-	t_info			*info;
-	pthread_mutex_t	*left;
-	pthread_mutex_t	*right;
-}	t_philo;
 
 typedef struct s_arg
 {
@@ -51,6 +39,17 @@ typedef struct s_info
 	t_status 	stat;
 	size_t		birth_t;
 }	t_info;
+
+typedef struct s_philo
+{
+	int				idx;
+	pthread_t		tid;
+	int				cnt_eat;
+	size_t			last_eat_t;
+	t_info			*info;
+	pthread_mutex_t	*left;
+	pthread_mutex_t	*right;
+}	t_philo;
 
 enum e_enum
 {

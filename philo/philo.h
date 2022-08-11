@@ -19,14 +19,15 @@ typedef struct s_status
 
 typedef struct s_mutex
 {
-	pthread_mutex_t	*fork;
 	pthread_mutex_t print;
+	pthread_mutex_t time;
+	pthread_mutex_t finish;
 }	t_mutex;
 
 typedef struct s_arg
 {
 	int	n_philo;
-	size_t die_time;
+	int die_time;
 	int eat_time;
 	int sleep_time;
 	int must_eat;

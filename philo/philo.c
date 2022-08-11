@@ -47,44 +47,33 @@ void	philo_print_die(t_info *info, int idx, char *status)
 	pthread_mutex_unlock(&info->prt_mutex);
 }
 
-void	philo_print(t_philo *philo, int idx, int status)
+void	philo_print(t_philo *philo, int idx, char *status)
 {
-	pthread_mutex_lock(&philo->info->prt_mutex);
+	int	end_flag;
+
+	end_flag = 0;
 	pthread_mutex_lock(&philo->info->t_mutex);
-	if (!philo->info->flags.die_f)
-	{
-		if (status == FORK)
-			printf("%ld %d has taken a fork\n", get_time() - philo->info->start_time, idx + 1);
-		else if (status == EATING)
-		{
-			printf("%ld %d is eating\n", get_time() - philo->info->start_time, idx + 1);
-			// if (++(philo->p_eat_cnt) == philo->info->arg.eat_cnt)
-			// 	philo->info->flags.eat_f++;
-		}
-		else if (status == SLEEPING)
-			printf("%ld %d is sleeping\n", get_time() - philo->info->start_time, idx + 1);
-		else if (status == THINKING)
-			printf("%ld %d is thinking\n", get_time() - philo->info->start_time, idx + 1);
-	}
+	if (philo->info->flags.die_f > 0)
+		end_flag = 1;
 	pthread_mutex_unlock(&philo->info->t_mutex);
+	if (end_flag == 1)
+		return ;
+	pthread_mutex_lock(&philo->info->prt_mutex);
+	printf("%ld %d %s\n", get_time() - philo->info->start_time, idx + 1, status);
 	pthread_mutex_unlock(&philo->info->prt_mutex);
 }
 
 void	philo_fork(t_philo *philo)
 {
-	// if (philo->idx % 2 == 0)
-	// 	usleep(30);
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
-	philo_print(philo, philo->idx, FORK);
+	philo_print(philo, philo->idx, "has taken a fork");
 	pthread_mutex_lock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
-	philo_print(philo, philo->idx, FORK);
+	philo_print(philo, philo->idx, "has taken a fork");
 }
 
 void	philo_eat(t_philo *philo)
 {
-	philo_print(philo, philo->idx, EATING);
-	// if (philo->info->flags.eat_f == philo->info->arg.philo_n)
-	// 	exit(1);
+	philo_print(philo, philo->idx, "is eating");
 	pthread_mutex_lock(&philo->info->t_mutex);
 	if (++(philo->p_eat_cnt) == philo->info->arg.eat_cnt)
 		philo->info->flags.eat_f++;
@@ -97,14 +86,14 @@ void	philo_sleep(t_philo *philo)
 {
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 != 0)) % philo->info->arg.philo_n)]);
 	pthread_mutex_unlock(&philo->info->fork_mutex[((philo->idx + (philo->idx % 2 == 0)) % philo->info->arg.philo_n)]);
-	philo_print(philo, philo->idx, SLEEPING);
+	philo_print(philo, philo->idx, "is sleeping");
 	smart_timer(philo->info->arg.sleep_t);
 }
 
 void	philo_think(t_philo *philo)
 {
-	philo_print(philo, philo->idx, THINKING);
-	usleep(70);
+	philo_print(philo, philo->idx, "is thinking");
+	usleep(50);
 }
 
 int	init_info(t_info *info)
@@ -123,7 +112,6 @@ int	init_info(t_info *info)
 	}
 	pthread_mutex_init(&(*info).prt_mutex, NULL);
 	pthread_mutex_init(&(*info).t_mutex, NULL);
-	// info->start_time = get_time();
 	info->flags.eat_f = 0;
 	info->flags.die_f = 0;
 	info->flags.err_f = 0;
@@ -142,7 +130,8 @@ void	*philo_action(void *param)
 	pthread_mutex_unlock(&philo->info->t_mutex);
 	if (philo->info->arg.philo_n == 1)
 	{
-		philo_print(philo, philo->idx, FORK);
+		philo_print(philo, philo->idx, "has taken a fork");
+		pthread_mutex_unlock(&philo->info->t_mutex);
 		while (!philo->info->flags.die_f);
 		return (NULL);
 	}
@@ -160,8 +149,6 @@ void	*philo_action(void *param)
 		pthread_mutex_unlock(&philo->info->t_mutex);
 		if (end == 1)
 			return (NULL);
-
-
 	}
 	return (NULL);
 }
@@ -191,54 +178,50 @@ t_philo	*init_philo(t_info *info)
 		pthread_create(&philo[i].tid, NULL, &philo_action, &philo[i]);
 		++i;
 	}
-	// usleep(100);
 	pthread_mutex_unlock(&info->t_mutex);
-	// philo->info->start_time = get_time();
 	return (philo);
 }
 
-int	main(int argc, char *argv[])
+void monitor(t_philo *philo)
 {
-	t_info	info;
-	t_philo	*philo;
 	int		i;
 	int		end;
+	// t_info	info;
 
-	if (!(argc == 5 || argc == 6))
-		return (ERROR);
-
-	set_arg(argc, argv, &info);
-	init_info(&info);
-	philo = init_philo(&info);
-//	return (monitor())
 	end = 0;
+	// info = *(*philo).info;
 	while(1)
 	{
 		i = 0;
-		while (i < info.arg.philo_n)
+		while (i < philo->info->arg.philo_n)
 		{
 			pthread_mutex_lock(&philo->info->t_mutex);
-			if (get_time() - philo[i].life_time > info.arg.life_t)
+			if (get_time() - philo[i].life_time > philo->info->arg.life_t)
+				end = 1;
+			pthread_mutex_unlock(&philo->info->t_mutex);
+			if (end == 1)
 			{
-				pthread_mutex_lock(&info.prt_mutex);
-				info.flags.die_f = 1;
-				philo_print_die(&info, i, "died");
-				printf("die_f end here\n");
+				pthread_mutex_lock(&philo->info->prt_mutex);
+				philo->info->flags.die_f = 1;
+				printf("%ld %d died\n" , get_time() - philo->info->start_time, i + 1);
 				pthread_mutex_unlock(&philo->info->fork_mutex[i]);
 				pthread_mutex_unlock(&philo->info->fork_mutex[(i + 1) % philo->info->arg.philo_n]);
-				pthread_mutex_unlock(&philo->info->t_mutex);
+				// pthread_mutex_unlock(&philo->info->t_mutex);
 				break;
 			}
-			// pthread_mutex_unlock(&philo->info->t_mutex);
-			if (info.flags.eat_f >= info.arg.philo_n)
+			pthread_mutex_lock(&philo->info->t_mutex);
+			if (philo->info->flags.eat_f >= philo->info->arg.philo_n)
+				end = 2;
+			pthread_mutex_unlock(&philo->info->t_mutex);
+			if (end == 2)
 			{
-				pthread_mutex_lock(&info.prt_mutex);
-				info.flags.die_f = 1;
+				pthread_mutex_lock(&philo->info->prt_mutex);
+				philo->info->flags.die_f = 1;
 				printf("eat_f end here\n");
-				pthread_mutex_unlock(&philo->info->t_mutex);
+				// pthread_mutex_unlock(&philo->info->t_mutex);
 				break ;
 			}
-			pthread_mutex_unlock(&philo->info->t_mutex);
+			// pthread_mutex_unlock(&philo->info->t_mutex);
 			++i;
 
 		}
@@ -246,9 +229,23 @@ int	main(int argc, char *argv[])
 		if (philo->info->flags.die_f > 0)
 			end = 1;
 		pthread_mutex_unlock(&philo->info->t_mutex);
-		if (end == 1)
+		if (end > 0)
 			break ;
 	}
+}
+
+int	main(int argc, char *argv[])
+{
+	t_info	info;
+	t_philo	*philo;
+	int		i;
+
+	if (!(argc == 5 || argc == 6))
+		return (ERROR);
+	set_arg(argc, argv, &info);
+	init_info(&info);
+	philo = init_philo(&info);
+	monitor(philo);
 	i = 0;
 	while (i < info.arg.philo_n)
 	{
@@ -266,7 +263,3 @@ int	main(int argc, char *argv[])
 	free(info.fork_mutex);
 	return (0);
 }
-
-//detach 되었을 때, mutex안됨
-//다 죽은 다음에 해야함
-//근데 다시 확인은 해봐야함

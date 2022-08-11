@@ -34,6 +34,12 @@ int main()
 	printf("detach start\n");
 	pthread_detach(t1);
 	printf("detach end\n");
-	system("leaks -q a.out");
+	s = get_time();
+	while (1)
+	{
+		if (get_time() - s >= 3000)
+			break ;
+	}
+	// system("leaks -q a.out");
 	return (0);
 }

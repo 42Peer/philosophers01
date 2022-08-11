@@ -32,8 +32,9 @@ typedef struct s_info
 {
 	t_arg			arg;
 	pthread_mutex_t	*fork_mutex;
-	pthread_mutex_t prt_mutex;
-	pthread_mutex_t	t_mutex;
+	pthread_mutex_t	prt_mutex;
+	pthread_mutex_t	time_mutex;
+	pthread_mutex_t	cnt_mutex;
 	t_flag			flags;
 	size_t			start_time;
 }					t_info;
@@ -57,6 +58,23 @@ enum	e_action
 	THINKING,
 	DIED
 };
+
+/* philo_action.c */
+void	philo_fork(t_philo *philo);
+void	philo_eat(t_philo *philo);
+void	philo_sleep(t_philo *philo);
+void	philo_think(t_philo *philo);
+void	*philo_action(void *param);
+
+/* philo_utils.c */
+size_t	get_time(void);
+void	smart_timer(size_t time);
+void	philo_print(t_philo *philo, int idx, char *status);
+
+/* philo_monitoring.c */
+void	philo_dieat(t_philo *philo);
+void	philo_die(t_philo *philo, int idx);
+void	monitor(t_philo *philo);
 
 long long	ft_atoi(const	char	*str);
 

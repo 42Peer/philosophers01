@@ -26,7 +26,7 @@ typedef struct s_mutex
 typedef struct s_arg
 {
 	int	n_philo;
-	int die_time;
+	size_t die_time;
 	int eat_time;
 	int sleep_time;
 	int must_eat;
@@ -54,7 +54,7 @@ typedef struct s_philo
 enum e_enum
 {
 	ERROR = -1,
-	SUCCESS = 1
+	SUCCESS
 };
 
 long long	ft_atoi(const	char	*str);

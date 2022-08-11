@@ -163,6 +163,10 @@ int init_mutex(t_info *info, pthread_mutex_t **fork)
 			return (ERROR);
 	if (pthread_mutex_init(&info->mutex.print, PTHREAD_MUTEX_NORMAL) != 0)
 		return (ERROR);
+	if (pthread_mutex_init(&info->mutex.time, PTHREAD_MUTEX_NORMAL) != 0)
+		return (ERROR);
+	if (pthread_mutex_init(&info->mutex.finish, PTHREAD_MUTEX_NORMAL) != 0)
+		return (ERROR);
 	return (SUCCESS);
 }
 
@@ -218,7 +222,6 @@ void	monitor(t_philo *philo)
 	int	i;
 	int	end_f;
 	size_t	last_t;
-	size_t	now;
 
 
 	while (1)
@@ -229,19 +232,16 @@ void	monitor(t_philo *philo)
 			pthread_mutex_lock(&philo->info->mutex.time);
 			last_t = philo[i].last_eat_t;
 			pthread_mutex_unlock(&philo->info->mutex.time);
-			now = get_time();
-			if (now - last_t > (size_t)philo->info->arg.die_time)
+			if (get_time() - last_t > (size_t)philo->info->arg.die_time)
 			{
 				pthread_mutex_lock(&philo->info->mutex.finish);
 				philo->info->stat.end = 1;
 				pthread_mutex_unlock(&philo->info->mutex.finish);
 				pthread_mutex_lock(&philo->info->mutex.print);
-				printf("%ld %d died\n", now - philo->info->birth_t, i + 1);
+				printf("%ld %d died\n", get_time() - philo->info->birth_t, i + 1);
 				pthread_mutex_unlock(&philo->info->mutex.print);
 				return ;
 			}
-			else
-				pthread_mutex_unlock(&philo->info->mutex.print);
 			pthread_mutex_lock(&philo->info->mutex.finish);
 			end_f = philo->info->stat.end;
 			pthread_mutex_unlock(&philo->info->mutex.finish);

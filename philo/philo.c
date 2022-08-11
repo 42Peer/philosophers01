@@ -105,6 +105,8 @@ void *action(void *param)
 	pthread_mutex_lock(&philo->info->mutex.print);
 	philo->last_eat_t = get_time();
 	pthread_mutex_unlock(&philo->info->mutex.print);
+	if (philo->idx % 2 != 0)
+		smart_timer(philo->info->arg.eat_time / 2);
 	while (!take_fork(philo)
 		 && !eating(philo, &philo->info->arg)
 		 && !sleep_thinking(philo, &philo->info->arg));
@@ -236,6 +238,7 @@ void	monitor(t_philo *philo)
 			// }
 			// else
 			// 	pthread_mutex_unlock(&philo->info->mutex.print);
+			++i;
 		}
 	}
 }

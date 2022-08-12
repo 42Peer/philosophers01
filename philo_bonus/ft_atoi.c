@@ -1,4 +1,4 @@
-#include "philo.h"
+#include "philo_bonus.h"
 
 // void	check_outofint(long long num)
 // {

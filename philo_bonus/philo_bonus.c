@@ -81,11 +81,11 @@ int init_philo(t_philo *philo, t_info *info, t_arg *arg)
 		sem_unlink("sem_print");
 		(*philo).info.sema.print = sem_open("sem_print", O_CREAT | O_EXCL, 0644, 1);
 	}
-	(*philo).info.sema.print = sem_open("sem_print", O_CREAT | O_EXCL, 0644, 0);
+	(*philo).info.sema.print = sem_open("sem_eatcnt", O_CREAT | O_EXCL, 0644, 0);
 	if ((*philo).info.sema.print == SEM_FAILED)
 	{
-		sem_unlink("sem_print");
-		(*philo).info.sema.print = sem_open("sem_print", O_CREAT | O_EXCL, 0644, 0);
+		sem_unlink("sem_eatcnt");
+		(*philo).info.sema.print = sem_open("sem_eatcnt", O_CREAT | O_EXCL, 0644, 0);
 	}
 	return (SUCCESS);
 }

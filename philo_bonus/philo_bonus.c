@@ -25,7 +25,7 @@ void *eat_checker(void *param)
 	t_philo *philo;
 
 	philo = (t_philo *)param;
-	sem_wait(philo->info.sema.eat_checker);			// 1이되면
+	sem_wait(philo->info.sema.eat_checker);
 	kill(0, SIGKILL);
     sem_close(philo->info.sema.eat_checker);			// 세마포어 종료 및 할당한 자원 해제
 	sem_unlink("eat_checker"); 							// 세마포어 객체 해제 제거
@@ -190,5 +190,8 @@ int	main(int argc, char **argv)
     sem_close(philo.info.sema.print);	// 세마포어 종료 및 할당한 자원 해제
 	sem_unlink("sem_fork"); 			// 세마포어 객체 해제 제거
 	sem_unlink("sem_print"); 			// 세마포어 객체 해제 제거
+	free(pid);
+	while (idx--)		// n - 1번
+		waitpid(-1, 0, 0);
 	return (0);
 }

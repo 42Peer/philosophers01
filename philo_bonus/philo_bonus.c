@@ -26,7 +26,7 @@ void *eat_checker(void *param)
 
 	philo = (t_philo *)param;
 	sem_wait(philo->info.sema.eat_checker);			// 1이되면
-	kill(-1, SIGKILL);
+	kill(0, SIGKILL);
     sem_close(philo->info.sema.eat_checker);			// 세마포어 종료 및 할당한 자원 해제
 	sem_unlink("eat_checker"); 							// 세마포어 객체 해제 제거
 	return (NULL);
@@ -65,24 +65,29 @@ int	sleep_thinking(t_philo *philo)
 {
 	sem_post(philo->info.sema.fork);
 	sem_post(philo->info.sema.fork);
+	philo_print(philo, &philo->info, philo->idx, "is sleeping");
 	smart_timer(philo->info.arg.sleep_time);
+	philo_print(philo, &philo->info, philo->idx, "is thinking");
 	return (SUCCESS);
 }
 
 void	*monitor(void *param)
 {
+	size_t	now_t;
+
 	t_philo	*const philo  = (t_philo *)param;
 	
 	while (1)
 	{
 		sem_wait(philo->info.sema.print);
-		if (get_time() > philo->info.arg.die_time + philo->last_eat_t)
+		now_t = get_time();
+		if (now_t > philo->info.arg.die_time + philo->last_eat_t)
 		{
-			philo_print(philo, &philo->info, philo->idx, "is died");
-			// free
+			printf("%lu %d died\n", now_t - (*philo).info.birth_t, philo->idx + 1);
 			exit(1);
 		}
-		sem_post(philo->info.sema.print);
+		else
+			sem_post(philo->info.sema.print);
 	}
 	return (NULL);
 }
@@ -93,9 +98,9 @@ void action(t_philo philo)
 
 	tid = NULL;
 	pthread_create(&tid, NULL, monitor, &philo);
-	sem_wait(philo.info.sema.print);
+	// sem_wait(philo.info.sema.print);
 	philo.last_eat_t = get_time();
-	sem_post(philo.info.sema.print);
+	// sem_post(philo.info.sema.print);
 	while (!take_fork(&philo)
 			&& !eating(&philo)
 			&& !sleep_thinking(&philo));
@@ -104,7 +109,6 @@ void action(t_philo philo)
 
 int init_philo(t_philo *philo, t_info *info, t_arg *arg)
 {
-	memset(philo, 0, sizeof(t_philo));
 	(*philo).last_eat_t = get_time();
 	info->sema.fork = sem_open("sem_fork", O_CREAT | O_EXCL, 0644, arg->n_philo);
 	if (info->sema.fork == SEM_FAILED)
@@ -148,29 +152,40 @@ int	main(int argc, char **argv)
 {
 	t_philo		philo;
 	pthread_t	tid_eatchecker;
-	pid_t	pid;
+	pid_t	*pid;
 	int		idx;
 
+	memset(&philo, 0, sizeof(t_philo));
 	if (parse_arg(argc, argv, &philo.info) == ERROR)
 		return (ERROR);
+	pid = malloc(sizeof(pid_t) * philo.info.arg.n_philo);
 	if (init_philo(&philo, &philo.info, &philo.info.arg) == ERROR)
 		return (ERROR);
 	idx = 0;
+
+
+	philo.info.birth_t = get_time();
 	while (idx < philo.info.arg.n_philo)
 	{
-		pid = fork();
-		if (pid == 0)
+		pid[idx] = fork();
+		if (pid[idx] == 0)
 			action(philo);
 		philo.idx = ++idx;
 	}
-
+	// sem_post(philo.info.sema.print);
+	
 	if (argc == 6)
 	{
 		pthread_create(&tid_eatchecker, NULL, eat_checker, &philo);
 		pthread_detach(tid_eatchecker);
 	}
 	waitpid(-1, 0, 0);
-	kill(-1, SIGKILL);
+	idx = -1;
+	while (++idx < philo.info.arg.n_philo)
+	{
+		kill(pid[idx], SIGKILL);
+		printf("%d\n", pid[idx]);
+	}
     sem_close(philo.info.sema.fork);	// 세마포어 종료 및 할당한 자원 해제
     sem_close(philo.info.sema.print);	// 세마포어 종료 및 할당한 자원 해제
 	sem_unlink("sem_fork"); 			// 세마포어 객체 해제 제거

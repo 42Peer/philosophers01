@@ -8,10 +8,11 @@
 # include <pthread.h>
 # include <signal.h>
 
-void action(int idx)
+void action(int idx, pid_t pid)
 {
-    printf("fork %d start!\n", idx);
-	exit(1);
+    printf("parent %d start! @ %d\n", idx, pid);
+	// kill(pid, SIGKILL);
+	// exit(1);
 }
 
 int	main(int argc, char **argv)
@@ -21,11 +22,11 @@ int	main(int argc, char **argv)
 	int		idx;
 
 	idx = 0;
-	while (idx < 3)
+	while (idx < 2)
 	{
 		pid = fork();
-		if (pid == 0)
-			action(idx);
+		if (pid != 0)
+			action(idx, pid);
 		++idx;
 	}
 	return (0);

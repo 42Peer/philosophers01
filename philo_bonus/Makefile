@@ -2,8 +2,8 @@ CC = cc
 
 NAME = philo_bonus
 
-# CFLAGS = -Wall -Werror -Wextra
-CFLAGS = -Wall -Werror -Wextra -fsanitize=thread
+CFLAGS = -Wall -Werror -Wextra
+# CFLAGS = -Wall -Werror -Wextra -g -fsanitize=thread
 
 SRCS = philo_bonus.c ft_atoi.c
 

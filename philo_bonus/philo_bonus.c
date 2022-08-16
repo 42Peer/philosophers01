@@ -28,7 +28,12 @@ void *eat_checker(void *param)
 	philo = (t_philo *)param;
 	i = -1;
 	while (++i < philo->info.arg.n_philo)
+	{
 		sem_wait(philo->info.sema.eat_checker);
+		if (i + 1 == philo->info.arg.n_philo)
+			break ;
+    	sem_post(philo->info.sema.print);
+	}
 	// sem_wait(philo->info.sema.print);
 	i = -1;
 	while (++i < philo->info.arg.n_philo)
@@ -47,7 +52,10 @@ void	philo_print(t_philo *philo, t_info *info, int idx, char *str)
 	{
 		philo->last_eat_t = get_time();
 		if (++(philo->eat_cnt) == info->arg.must_eat)
+		{
 			sem_post(info->sema.eat_checker);
+			return ;
+		}
 	}
 	sem_post(philo->info.sema.print);
 }

@@ -40,12 +40,12 @@ typedef struct s_info
 	t_arg		arg;
 	t_sem		sema;
 	size_t		birth_t;
+	pid_t		*pid;
 	// t_status 	stat;
 }	t_info;
 
 typedef struct s_philo
 {
-	int		pid;
 	int 	idx;
 	t_info	info;
 	size_t	last_eat_t;
